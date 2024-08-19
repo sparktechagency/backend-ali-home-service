@@ -1,6 +1,6 @@
-import QueryBuilder from "../../builder/QueryBuilder";
-import { TContent } from "./content.interface";
-import { Content } from "./content.model";
+import QueryBuilder from '../../builder/QueryBuilder';
+import { TContent } from './content.interface';
+import { Content } from './content.model';
 
 const insertContentIntoDb = async (payload: Partial<TContent>) => {
   const existingContent = await Content.findOne();
@@ -16,11 +16,11 @@ const insertContentIntoDb = async (payload: Partial<TContent>) => {
 };
 
 const getContents = async (query: Record<string, any>) => {
-  let selectFields: any = {};
+  const selectFields: any = {};
 
   // Extract select fields from the query
   if (query.select) {
-    const fields = query.select.split(",");
+    const fields = query.select.split(',');
     fields.forEach((field: string) => {
       selectFields[field.trim()] = 1;
     });

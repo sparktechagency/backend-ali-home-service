@@ -1,9 +1,9 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 const refreshTokenValidationSchema = z.object({
   cookies: z.object({
     refreshToken: z.string({
-      required_error: "Refresh token is required!",
+      required_error: 'Refresh token is required!',
     }),
   }),
 });

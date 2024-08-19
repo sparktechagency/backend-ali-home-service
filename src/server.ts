@@ -1,14 +1,15 @@
-import { Server, createServer } from "http";
-import mongoose from "mongoose";
-import app from "./app";
-import config from "./app/config";
-import initializeSocketIO from "./socketIo";
+import { Server, createServer } from 'http';
+import mongoose from 'mongoose';
+import app from './app';
+import config from './app/config';
+import initializeSocketIO from './socketIo';
 let server: Server;
 export const io = initializeSocketIO(createServer(app));
 
 async function main() {
   try {
     await mongoose.connect(config.database_url as string);
+
     server = app.listen(Number(config.port), config.ip as string, () => {
       console.log(`app is listening on port ${config.port}`);
     });
@@ -21,7 +22,7 @@ async function main() {
 
 main();
 
-process.on("unhandledRejection", (err) => {
+process.on('unhandledRejection', (err) => {
   console.log(`😈 unahandledRejection is detected , shutting down ...`, err);
   if (server) {
     server.close(() => {
@@ -31,7 +32,7 @@ process.on("unhandledRejection", (err) => {
   process.exit(1);
 });
 
-process.on("uncaughtException", () => {
+process.on('uncaughtException', () => {
   console.log(`😈 uncaughtException is detected , shutting down ...`);
   process.exit(1);
 });

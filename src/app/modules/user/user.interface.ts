@@ -1,4 +1,4 @@
-import { Model } from "mongoose";
+import { Model } from 'mongoose';
 export interface TUser {
   [x: string]: any;
   id: string;
@@ -9,8 +9,8 @@ export interface TUser {
   fullName: string;
   needsPasswordChange: boolean;
   passwordChangedAt?: Date;
-  role: "admin" | "vendor" | "user";
-  status: "pending" | "active" | "blocked";
+  role: 'admin' | 'vendor' | 'user';
+  status: 'pending' | 'active' | 'blocked';
   isDeleted: boolean;
   image?: string;
   verification: {
@@ -26,6 +26,6 @@ export interface UserModel extends Model<TUser> {
 
   isPasswordMatched(
     plainTextPassword: string,
-    hashedPassword: string
+    hashedPassword: string,
   ): Promise<boolean>;
 }

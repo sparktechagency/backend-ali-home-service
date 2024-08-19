@@ -1,6 +1,6 @@
-import multer from "multer";
-import fs from "fs";
-import { Request } from "express";
+import multer from 'multer';
+import fs from 'fs';
+import { Request } from 'express';
 const fileUpload = (uploadDirectory: string) => {
   if (!fs.existsSync(uploadDirectory)) {
     fs.mkdirSync(uploadDirectory, { recursive: true });
@@ -10,15 +10,15 @@ const fileUpload = (uploadDirectory: string) => {
       cb(null, uploadDirectory);
     },
     filename: function (req: Request, file, cb) {
-      const parts = file.originalname.split(".");
+      const parts = file.originalname.split('.');
       let extenson;
       if (parts.length > 1) {
-        extenson = "." + parts.pop();
+        extenson = '.' + parts.pop();
       }
-      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
       cb(
         null,
-        parts.shift()!.replace(/\s+/g, "_") + "-" + uniqueSuffix + extenson
+        parts.shift()!.replace(/\s+/g, '_') + '-' + uniqueSuffix + extenson,
       );
     },
   });
@@ -30,16 +30,16 @@ const fileUpload = (uploadDirectory: string) => {
 
     fileFilter: function (req: Request, file, cb) {
       if (
-        file.mimetype === "image/png" ||
-        file.mimetype === "image/jpg" ||
-        file.mimetype === "image/jpeg" ||
-        file.mimetype === "image/svg" ||
-        file.mimetype === "image/svg+xml"
+        file.mimetype === 'image/png' ||
+        file.mimetype === 'image/jpg' ||
+        file.mimetype === 'image/jpeg' ||
+        file.mimetype === 'image/svg' ||
+        file.mimetype === 'image/svg+xml'
       ) {
         cb(null, true);
       } else {
         cb(null, false);
-        throw new Error("only png,jpg,jpeg,svg format allowed");
+        throw new Error('only png,jpg,jpeg,svg format allowed');
       }
     },
   });

@@ -1,10 +1,10 @@
-import { FilterQuery } from "mongoose";
-import { emitMessage } from "../../utils/socket";
-import { TNotification } from "./notification.interface";
-import { Notification } from "./notification.model";
-import QueryBuilder from "../../builder/QueryBuilder";
-import { notification } from "antd";
-import moment from "moment";
+import { FilterQuery } from 'mongoose';
+import { emitMessage } from '../../utils/socket';
+import { TNotification } from './notification.interface';
+import { Notification } from './notification.model';
+import QueryBuilder from '../../builder/QueryBuilder';
+import { notification } from 'antd';
+import moment from 'moment';
 
 const insertNotificationIntoDb = async (payload: any) => {
   console.log(payload);
@@ -13,7 +13,7 @@ const insertNotificationIntoDb = async (payload: any) => {
   payload?.forEach((element) => {
     emitMessage(element?.receiver, {
       ...element,
-      createdAt: moment().format("YYYY-MM-DD"),
+      createdAt: moment().format('YYYY-MM-DD'),
     });
   });
   return result;
@@ -43,7 +43,7 @@ const markAsDone = async (id: string) => {
         read: true,
       },
     },
-    { new: true }
+    { new: true },
   );
   return result;
 };

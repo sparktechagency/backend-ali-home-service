@@ -1,28 +1,28 @@
-import { model, Schema } from "mongoose";
-import { TContent } from "./content.interface";
+import { model, Schema } from 'mongoose';
+import { TContent } from './content.interface';
 
 const contentSchema = new Schema<TContent>(
   {
     aboutUs: {
       type: String,
-      default: "",
+      default: '',
     },
     privacyPolicy: {
       type: String,
-      default: "",
+      default: '',
     },
     termsAndConditions: {
       type: String,
-      default: "",
+      default: '',
     },
     support: {
       type: String,
-      default: "",
+      default: '',
     },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-export const Content = model<TContent>("Content", contentSchema);
+export const Content = model<TContent>('Content', contentSchema);

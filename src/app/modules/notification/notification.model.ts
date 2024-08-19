@@ -1,18 +1,18 @@
-import { Schema, model } from "mongoose";
-import { modeType, TNotification } from "./notification.interface";
+import { Schema, model } from 'mongoose';
+import { modeType, TNotification } from './notification.interface';
 
 const NotificationSchema = new Schema<TNotification>(
   {
     receiver: {
       type: Schema.Types.ObjectId,
-      ref: "User",
-      required: [true, "Receiver id is required"],
+      ref: 'User',
+      required: [true, 'Receiver id is required'],
     },
     refference: {
       type: Schema.Types.ObjectId,
       //   dynamic refference
-      refPath: "model_type",
-      required: [true, "Receiver id is required"],
+      refPath: 'model_type',
+      required: [true, 'Receiver id is required'],
     },
     model_type: {
       type: String,
@@ -20,11 +20,11 @@ const NotificationSchema = new Schema<TNotification>(
     },
     message: {
       type: String,
-      required: [true, "Message is required"],
+      required: [true, 'Message is required'],
     },
     description: {
       type: String,
-      default: "",
+      default: '',
     },
     read: {
       type: Boolean,
@@ -35,26 +35,26 @@ const NotificationSchema = new Schema<TNotification>(
       default: false,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // filter out deleted documents
-NotificationSchema.pre("find", function (next) {
+NotificationSchema.pre('find', function (next) {
   this.find({ isDeleted: { $ne: true } });
   next();
 });
 
-NotificationSchema.pre("findOne", function (next) {
+NotificationSchema.pre('findOne', function (next) {
   this.find({ isDeleted: { $ne: true } });
   next();
 });
 
-NotificationSchema.pre("aggregate", function (next) {
+NotificationSchema.pre('aggregate', function (next) {
   this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
   next();
 });
 
 export const Notification = model<TNotification>(
-  "Notification",
-  NotificationSchema
+  'Notification',
+  NotificationSchema,
 );

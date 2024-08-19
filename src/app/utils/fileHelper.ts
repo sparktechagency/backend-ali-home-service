@@ -1,5 +1,5 @@
-import fs from "fs";
-import util from "util";
+import fs from 'fs';
+import util from 'util';
 const unlinkSync = util.promisify(fs.unlink);
 export const deleteFile = async (path: string) => {
   console.log(path);
@@ -7,7 +7,7 @@ export const deleteFile = async (path: string) => {
     if (fs.existsSync(`../public/${path}`)) {
       await unlinkSync(`../public/${path}`);
     } else {
-      console.log("not found");
+      console.log('not found');
     }
   } catch (err: any) {
     console.log(err);

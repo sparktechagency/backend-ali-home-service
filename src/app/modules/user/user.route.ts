@@ -1,70 +1,70 @@
-import { Router } from "express";
-import { userControllers } from "./user.controller";
-import auth from "../../middleware/auth";
-import { USER_ROLE } from "./user.constant";
-import fileUpload from "../../middleware/fileUpload";
-import parseData from "../../middleware/parseData";
-const upload = fileUpload("./public/uploads/profile/");
+import { Router } from 'express';
+import { userControllers } from './user.controller';
+import auth from '../../middleware/auth';
+import { USER_ROLE } from './user.constant';
+import fileUpload from '../../middleware/fileUpload';
+import parseData from '../../middleware/parseData';
+const upload = fileUpload('./public/uploads/profile/');
 const router = Router();
 router.post(
-  "/create-user",
+  '/create-user',
   // upload.single("file"),
   // parseData(),
-  userControllers.insertuserIntoDb
+  userControllers.insertuserIntoDb,
 );
 router.post(
-  "/create-vendor",
-  upload.single("file"),
+  '/create-vendor',
+  upload.single('file'),
   parseData(),
-  userControllers.insertVendorIntoDb
+  userControllers.insertVendorIntoDb,
 );
 router.patch(
-  "/update/:id",
+  '/update/:id',
   auth(USER_ROLE.admin),
-  upload.single("file"),
+  upload.single('file'),
   parseData(),
-  userControllers.updateUser
+  userControllers.updateUser,
 );
 router.patch(
-  "/",
+  '/',
   auth(USER_ROLE.user, USER_ROLE.admin, USER_ROLE.vendor),
-  upload.single("file"),
+  upload.single('file'),
   parseData(),
-  userControllers.updateProfile
+  userControllers.updateProfile,
 );
 router.get(
-  "/all",
+  '/all',
   auth(USER_ROLE.vendor, USER_ROLE.admin),
-  userControllers.getAllUsers
+  userControllers.getAllUsers,
 );
 router.get(
-  "/",
+  '/',
   auth(USER_ROLE.user, USER_ROLE.admin, USER_ROLE.vendor),
-  userControllers.getme
+  userControllers.getme,
 );
 
 router.get(
-  "/:id",
+  '/:id',
   auth(USER_ROLE.vendor, USER_ROLE.admin),
-  userControllers.getsingleUser
+  userControllers.getsingleUser,
 );
 router.patch(
-  "/update/:id",
+  '/update/:id',
   auth(USER_ROLE.admin),
-  upload.single("file"),
+  upload.single('file'),
   parseData(),
-  userControllers.updateUser
+  userControllers.updateUser,
 );
 router.patch(
-  "/:id",
+  '/:id',
   auth(USER_ROLE.user),
-  upload.single("file"),
+  upload.single('file'),
   parseData(),
-  userControllers.updateProfile
+  userControllers.updateProfile,
 );
 router.delete(
-  "/",
+  '/',
   auth(USER_ROLE.vendor, USER_ROLE.user),
-  userControllers.deleteAccount
+  userControllers.deleteAccount,
 );
 export const userRoutes = router;

@@ -1,32 +1,32 @@
-import { Router } from "express";
-import { authRoutes } from "../modules/auth/auth.route";
-import { otpRoutes } from "../modules/otp/otp.routes";
-import { userRoutes } from "../modules/user/user.route";
+import { Router } from 'express';
+import { authRoutes } from '../modules/auth/auth.route';
+import { otpRoutes } from '../modules/otp/otp.routes';
+import { userRoutes } from '../modules/user/user.route';
 
-import { contentRoues } from "../modules/content/content.route";
-import { notificationRoutes } from "../modules/notification/notificaiton.route";
+import { contentRoues } from '../modules/content/content.route';
+import { notificationRoutes } from '../modules/notification/notificaiton.route';
 
 const router = Router();
 const moduleRoutes = [
   {
-    path: "/users",
+    path: '/users',
     route: userRoutes,
   },
   {
-    path: "/auth",
+    path: '/auth',
     route: authRoutes,
   },
   {
-    path: "/otp",
+    path: '/otp',
     route: otpRoutes,
   },
 
   {
-    path: "/notifications",
+    path: '/notifications',
     route: notificationRoutes,
   },
   {
-    path: "/content",
+    path: '/content',
     route: contentRoues,
   },
 ];
