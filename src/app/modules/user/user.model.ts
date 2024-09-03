@@ -1,119 +1,122 @@
-import { Schema, model } from 'mongoose';
-import { TUser, UserModel } from './user.interface';
-import { UserStatus } from './user.constant';
-import config from '../../config';
+/* eslint-disable @typescript-eslint/no-this-alias */
 import bcrypt from 'bcrypt';
-import { string } from 'zod';
-const userSchema = new Schema<TUser, UserModel>(
+import { model, Schema } from 'mongoose';
+import config from '../../config';
+import { status, TUser, UserModel, UserRole } from './user.interface';
+
+// Define the schema for Verification
+const VerificationSchema = new Schema({
+  otp: {
+    type: Number, // Allows string or number
+    required: true,
+  },
+  expiresAt: {
+    type: Date,
+    required: true,
+  },
+  status: {
+    type: Boolean,
+    required: true,
+  },
+});
+
+// Define the schema for the User model
+const UserSchema = new Schema<TUser, UserModel>(
   {
-    // userName: {
-    //   type: String,
-    //   required: [true, "userName is required"],
-    // },
-    fullName: {
-      type: String,
-      required: [true, 'fullName is required'],
-    },
-    image: {
-      type: String,
-      default: '',
-    },
     email: {
       type: String,
-      required: [true, 'email is required'],
       unique: true,
     },
     password: {
       type: String,
-      required: [true, 'password is required'],
-      select: 0,
+      required: true,
     },
-    passwordChangedAt: {
-      type: Date,
+    countryCode: {
+      type: String,
+      required: true,
+    },
+    phoneNumber: {
+      type: String,
+      required: true,
+      unique: true,
     },
     needsPasswordChange: {
       type: Boolean,
       default: false,
     },
+    passwordChangedAt: {
+      type: Date,
+    },
     role: {
       type: String,
-      enum: ['admin', 'vendor', 'user'],
+      enum: Object.values(UserRole),
+      required: true,
     },
     status: {
       type: String,
-      enum: UserStatus,
-      default: 'active',
+      enum: Object.values(status),
+      default: status.pending,
     },
     isDeleted: {
       type: Boolean,
       default: false,
     },
-    phoneNumber: {
-      type: String,
-      required: [true, 'phoneNumber is required'],
-    },
     verification: {
-      otp: {
-        type: String,
-        select: 0,
-      },
-      expiresAt: {
-        type: Date,
-        select: 0,
-      },
-      status: {
-        type: Boolean,
-        default: false,
-        select: 0,
-      },
+      type: VerificationSchema,
+      required: true,
     },
   },
   {
-    timestamps: true,
+    timestamps: true, // Automatically adds createdAt and updatedAt fields
   },
 );
 
-userSchema.pre('save', async function (next) {
+// Pre-save hook to hash password if it is modified or new
+UserSchema.pre('save', async function (next) {
   const user = this;
   user.password = await bcrypt.hash(
-    user.password,
+    user.password as string,
     Number(config.bcrypt_salt_rounds),
   );
   next();
 });
 
 // set '' after saving password
-userSchema.post('save', function (doc, next) {
+UserSchema.post('save', function (doc, next) {
   doc.password = '';
   next();
 });
-// filter out deleted documents
-userSchema.pre('find', function (next) {
-  this.find({ isDeleted: { $ne: true } });
-  next();
-});
 
-userSchema.pre('findOne', function (next) {
-  this.find({ isDeleted: { $ne: true } });
-  next();
-});
-
-userSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
-  next();
-});
-
-userSchema.statics.isUserExist = async function (email: string) {
-  return await User.findOne({ email: email }).select('+password');
-};
-userSchema.statics.IsUserExistbyId = async function (id: string) {
-  return await User.findById(id).select('+password');
-};
-userSchema.statics.isPasswordMatched = async function (
-  plainTextPassword,
-  hashedPassword,
-) {
-  return await bcrypt.compare(plainTextPassword, hashedPassword);
+// Check if a user exists by email
+UserSchema.statics.isUserExist = async function (
+  email: string,
+): Promise<TUser | null> {
+  return this.findOne({ email });
 };
 
-export const User = model<TUser, UserModel>('User', userSchema);
+// Check if a user exists by phone number
+UserSchema.statics.isUserExistByNumber = async function (
+  phoneNumber: string,
+): Promise<TUser | null> {
+  return this.findOne({ phoneNumber });
+};
+
+// Check if a user exists by ID
+UserSchema.statics.IsUserExistbyId = async function (
+  id: string,
+): Promise<TUser | null> {
+  return this.findById(id);
+};
+
+// Compare plain text password with hashed password
+UserSchema.statics.isPasswordMatched = async function (
+  plainTextPassword: string,
+  hashedPassword: string,
+): Promise<boolean> {
+  return bcrypt.compare(plainTextPassword, hashedPassword);
+};
+
+// Create and export the User model
+const User = model<TUser, UserModel>('User', UserSchema);
+
+export default User;
