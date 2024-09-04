@@ -1,18 +1,20 @@
-import catchAsync from '../../utils/catchAsync';
 import { Request, Response } from 'express';
-import { userServices } from './user.service';
+import catchAsync from '../../utils/catchAsync';
+import { storeFile, uploadToS3 } from '../../utils/fileHelper';
 import sendResponse from '../../utils/sendResponse';
-import { storeFile } from '../../utils/fileHelper';
-const insertuserIntoDb = catchAsync(async (req: Request, res: Response) => {
-  // if (req?.file) {
-  //   req.body.image = storeFile("profile", req?.file?.filename);
-  // }
-  const result = await userServices.insertUserIntoDb(req.body);
+import { userServices } from './user.service';
+const insertCustomerIntoDb = catchAsync(async (req: Request, res: Response) => {
+  if (req?.file) {
+    const image = await uploadToS3(req?.file, 'profile/');
+    console.log(image);
+  }
+  console.log(req.file, req.body);
+  // const result = await userServices.insertCustomerIntoDb(req.body);
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'user created successfully',
-    data: result,
+    message: 'User created successfully',
+    data: {},
   });
 });
 const insertVendorIntoDb = catchAsync(async (req: Request, res: Response) => {
@@ -96,7 +98,7 @@ const deleteAccount = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const userControllers = {
-  insertuserIntoDb,
+  insertCustomerIntoDb,
   insertVendorIntoDb,
   getme,
   updateProfile,

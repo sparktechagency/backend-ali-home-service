@@ -1,29 +1,8 @@
-import multer from 'multer';
-import fs from 'fs';
 import { Request } from 'express';
-const fileUpload = (uploadDirectory: string) => {
-  if (!fs.existsSync(uploadDirectory)) {
-    fs.mkdirSync(uploadDirectory, { recursive: true });
-  }
-  const storage = multer.diskStorage({
-    destination: function (req: Request, file, cb) {
-      cb(null, uploadDirectory);
-    },
-    filename: function (req: Request, file, cb) {
-      const parts = file.originalname.split('.');
-      let extenson;
-      if (parts.length > 1) {
-        extenson = '.' + parts.pop();
-      }
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-      cb(
-        null,
-        parts.shift()!.replace(/\s+/g, '_') + '-' + uniqueSuffix + extenson,
-      );
-    },
-  });
+import multer, { memoryStorage } from 'multer';
+const fileUpload = () => {
   const upload = multer({
-    storage: storage,
+    storage: memoryStorage(),
     limits: {
       fileSize: 2000000,
     },
@@ -45,4 +24,5 @@ const fileUpload = (uploadDirectory: string) => {
   });
   return upload;
 };
-export default fileUpload;
+const upload = fileUpload();
+export default upload;

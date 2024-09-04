@@ -21,12 +21,14 @@ export interface TUser {
   [x: string]: any;
   id?: string;
   email?: string;
-  password?: string;
+  password: string;
   phoneNumber: string;
   needsPasswordChange: boolean;
   passwordChangedAt?: Date;
   role: UserRole;
-  status: status;
+  status?: status;
+  isVerified: boolean;
+  isActive: boolean;
   isDeleted: boolean;
   verification: Verification;
   countryCode: string;
@@ -34,7 +36,7 @@ export interface TUser {
 
 export interface UserModel extends Model<TUser> {
   isUserExist(email: string): Promise<TUser>;
-  isUserExistByNumber(phoneNumber: string): Promise<TUser>;
+  isUserExistByNumber(countryCode: string, phoneNumber: string): Promise<TUser>;
   IsUserExistbyId(id: string): Promise<TUser>;
   isPasswordMatched(
     plainTextPassword: string,

@@ -2,7 +2,7 @@
 import bcrypt from 'bcrypt';
 import { model, Schema } from 'mongoose';
 import config from '../../config';
-import { status, TUser, UserModel, UserRole } from './user.interface';
+import { TUser, UserModel, UserRole } from './user.interface';
 
 // Define the schema for Verification
 const VerificationSchema = new Schema({
@@ -52,10 +52,13 @@ const UserSchema = new Schema<TUser, UserModel>(
       enum: Object.values(UserRole),
       required: true,
     },
-    status: {
-      type: String,
-      enum: Object.values(status),
-      default: status.pending,
+    isActive: {
+      type: Boolean,
+      default: false,
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
     },
     isDeleted: {
       type: Boolean,
@@ -96,9 +99,10 @@ UserSchema.statics.isUserExist = async function (
 
 // Check if a user exists by phone number
 UserSchema.statics.isUserExistByNumber = async function (
+  countryCode: string,
   phoneNumber: string,
-): Promise<TUser | null> {
-  return this.findOne({ phoneNumber });
+) {
+  return this.findOne({ countryCode, phoneNumber }).select('+password');
 };
 
 // Check if a user exists by ID
@@ -116,6 +120,21 @@ UserSchema.statics.isPasswordMatched = async function (
   return bcrypt.compare(plainTextPassword, hashedPassword);
 };
 
+// filter out deleted documents
+UserSchema.pre('find', function (next) {
+  this.find({ isDeleted: { $ne: true } });
+  next();
+});
+
+UserSchema.pre('findOne', function (next) {
+  this.find({ isDeleted: { $ne: true } });
+  next();
+});
+
+UserSchema.pre('aggregate', function (next) {
+  this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+  next();
+});
 // Create and export the User model
 const User = model<TUser, UserModel>('User', UserSchema);
 

@@ -1,35 +1,53 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import jwt, { JwtPayload, Secret } from 'jsonwebtoken';
 
-import httpStatus from 'http-status';
-import AppError from '../../error/AppError';
-import { User } from '../user/user.model';
-import { TchangePassword, Tlogin, TresetPassword } from './auth.interface';
-import config from '../../config';
-import { createToken, verifyToken } from './auth.utils';
-import { generateOtp } from '../../utils/otpGenerator';
-import moment from 'moment';
-import { sendEmail } from '../../utils/mailSender';
 import bcrypt from 'bcrypt';
+import httpStatus from 'http-status';
+import moment from 'moment';
+import config from '../../config';
+import AppError from '../../error/AppError';
+import { sendEmail } from '../../utils/mailSender';
+import { generateOtp } from '../../utils/otpGenerator';
+
+import Customer from '../customer/customer.model';
+import { UserRole } from '../user/user.interface';
+import User from '../user/user.model';
+import { TchangePassword, Tlogin, TresetPassword } from './auth.interface';
+import { createToken, verifyToken } from './auth.utils';
 
 const login = async (payload: Tlogin) => {
-  const user = await User.isUserExist(payload?.email);
+  const user = await User.isUserExistByNumber(payload?.phoneNumber as string);
+  let profile;
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, 'User Not Found');
   }
-  if (user?.status === 'blocked') {
+  if (!user?.isActive) {
     throw new AppError(httpStatus.FORBIDDEN, 'This user is blocked ! !');
   }
   if (user?.isDeleted) {
     throw new AppError(httpStatus.FORBIDDEN, 'This user is deleted !');
   }
-  if (user?.status === 'pending') {
-    throw new AppError(httpStatus.BAD_REQUEST, 'user is not verified');
+  if (!user?.isVerified) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'user is not verified !');
+  }
+
+  switch (user?.role) {
+    case UserRole.customer:
+      profile = await Customer.findOne({ user: user?._id });
+      break;
+    // case 'provider':
+    //   profile = await Customer.findOne({ user: user?._id });
+    //   break;
+
+    default:
+      break;
   }
   if (!(await User.isPasswordMatched(payload.password, user.password))) {
     throw new AppError(httpStatus.BAD_REQUEST, 'password do not match');
   }
   const jwtPayload = {
     userId: user?._id,
+    profileId: profile?._id,
     role: user.role,
   };
   const accessToken = createToken(
@@ -50,9 +68,7 @@ const login = async (payload: Tlogin) => {
   };
 };
 // change password
-
 const changePassword = async (id: string, payload: TchangePassword) => {
-  console.log(payload);
   const user = await User.IsUserExistbyId(id);
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, 'user not found');
@@ -102,7 +118,7 @@ const forgotPassword = async (email: string) => {
     id: user?._id,
   };
   const token = jwt.sign(jwtPayload, config.jwt_access_secret as Secret, {
-    expiresIn: '2m',
+    expiresIn: '3m',
   });
   const currentTime = new Date();
   const otp = generateOtp();
@@ -125,7 +141,6 @@ const forgotPassword = async (email: string) => {
 };
 
 const resetPassword = async (token: string, payload: TresetPassword) => {
-  console.log(token, payload);
   let decode;
   try {
     decode = jwt.verify(
