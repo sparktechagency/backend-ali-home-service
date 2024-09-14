@@ -13,21 +13,26 @@ router.post(
   userControllers.insertCustomerIntoDb,
 );
 router.post(
-  '/create-vendor',
-
+  '/create-provider',
+  upload.single('file'),
   parseData(),
-  userControllers.insertVendorIntoDb,
+  userControllers.insertProviderintoDb,
 );
 router.patch(
   '/update/:id',
   auth(USER_ROLE.admin),
-
+  upload.single('file'),
   parseData(),
   userControllers.updateUser,
 );
+router.get(
+  '/profile',
+  auth(USER_ROLE.sup_admin, USER_ROLE.customer),
+  userControllers.getme,
+);
 router.patch(
   '/',
-  auth(USER_ROLE.user, USER_ROLE.admin, USER_ROLE.vendor),
+  auth(USER_ROLE.customer, USER_ROLE.sup_admin, USER_ROLE.vendor),
 
   parseData(),
   userControllers.updateProfile,
@@ -36,11 +41,6 @@ router.get(
   '/all',
   auth(USER_ROLE.vendor, USER_ROLE.admin),
   userControllers.getAllUsers,
-);
-router.get(
-  '/',
-  auth(USER_ROLE.user, USER_ROLE.admin, USER_ROLE.vendor),
-  userControllers.getme,
 );
 
 router.get(

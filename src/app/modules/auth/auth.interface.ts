@@ -5,6 +5,7 @@ export type QueryObject = {
 
 export type Tlogin = {
   email?: string;
+  countryCode?: string;
   phoneNumber?: string;
   password: string;
 };

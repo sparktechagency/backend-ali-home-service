@@ -1,5 +1,5 @@
 import { model, Schema } from 'mongoose';
-import { Icustomer, name } from './customer.interface';
+import { Icustomer, Iimage, name } from './customer.interface';
 
 // Define the schema for the User model
 const nameSchema = new Schema<name>({
@@ -12,6 +12,17 @@ const nameSchema = new Schema<name>({
     required: true,
   },
 });
+const imageSchema = new Schema<Iimage>({
+  id: {
+    type: String,
+    required: true,
+  },
+  url: {
+    type: String,
+    required: true,
+  },
+});
+
 const CustomerSchema = new Schema<Icustomer>(
   {
     name: nameSchema,
@@ -31,6 +42,7 @@ const CustomerSchema = new Schema<Icustomer>(
         default: 'Point',
       },
     },
+    image: imageSchema,
     isDeleted: {
       type: Boolean,
       default: false,

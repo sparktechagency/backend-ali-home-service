@@ -16,7 +16,10 @@ import { TchangePassword, Tlogin, TresetPassword } from './auth.interface';
 import { createToken, verifyToken } from './auth.utils';
 
 const login = async (payload: Tlogin) => {
-  const user = await User.isUserExistByNumber(payload?.phoneNumber as string);
+  const user = await User.isUserExistByNumber(
+    payload?.countryCode as string,
+    payload?.phoneNumber as string,
+  );
   let profile;
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, 'User Not Found');

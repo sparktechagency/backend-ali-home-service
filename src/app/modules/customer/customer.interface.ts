@@ -10,6 +10,11 @@ interface location {
   type: string;
 }
 
+export interface Iimage {
+  id: string;
+  url: string;
+}
+
 export interface Icustomer {
   name: name;
   address: string;

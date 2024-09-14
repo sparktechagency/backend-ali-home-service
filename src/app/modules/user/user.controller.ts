@@ -1,25 +1,37 @@
 import { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
-import { storeFile, uploadToS3 } from '../../utils/fileHelper';
+import { uploadToS3 } from '../../utils/fileHelper';
 import sendResponse from '../../utils/sendResponse';
+import { USER_ROLE } from './user.constant';
 import { userServices } from './user.service';
 const insertCustomerIntoDb = catchAsync(async (req: Request, res: Response) => {
+  let image;
   if (req?.file) {
-    const image = await uploadToS3(req?.file, 'profile/');
-    console.log(image);
+    image = await uploadToS3(req?.file, 'profile/');
   }
-  console.log(req.file, req.body);
-  // const result = await userServices.insertCustomerIntoDb(req.body);
+
+  const result = await userServices.insertCustomerIntoDb({
+    ...req.body,
+    role: USER_ROLE.customer,
+    image,
+  });
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: 'User created successfully',
-    data: {},
+    data: result,
   });
 });
-const insertVendorIntoDb = catchAsync(async (req: Request, res: Response) => {
-  req.body.role = 'vendor';
-  const result = await userServices.insertVendorIntoDb(req.body);
+const insertProviderintoDb = catchAsync(async (req: Request, res: Response) => {
+  let image;
+  if (req?.file) {
+    image = await uploadToS3(req?.file, 'profile/');
+  }
+  const result = await userServices.insertProviderIntoDb({
+    ...req.body,
+    role: USER_ROLE.provider,
+    image,
+  });
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -39,11 +51,15 @@ const getme = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateProfile = catchAsync(async (req: Request, res: Response) => {
+  let image;
   if (req?.file) {
-    req.body.image = storeFile('profile', req?.file?.filename);
+    image = await uploadToS3(req?.file, 'profile/');
   }
-  console.log(req.body);
-  const result = await userServices.updateProfile(req.user.userId, req.body);
+
+  const result = await userServices.updateProfile(req.user.userId, {
+    ...req.body,
+    image,
+  });
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -99,7 +115,7 @@ const deleteAccount = catchAsync(async (req: Request, res: Response) => {
 
 export const userControllers = {
   insertCustomerIntoDb,
-  insertVendorIntoDb,
+  insertProviderintoDb,
   getme,
   updateProfile,
   getAllUsers,
