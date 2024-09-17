@@ -1,9 +1,10 @@
-import catchAsync from '../../utils/catchAsync';
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Request, Response } from 'express';
-import { authServices } from './auth.service';
-import sendResponse from '../../utils/sendResponse';
 import httpStatus from 'http-status';
 import config from '../../config';
+import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
+import { authServices } from './auth.service';
 const login = catchAsync(async (req: Request, res: Response) => {
   const result = await authServices.login(req.body);
   const { refreshToken } = result;

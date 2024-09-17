@@ -5,6 +5,8 @@ import { userRoutes } from '../modules/user/user.route';
 
 import { contentRoues } from '../modules/content/content.route';
 import { notificationRoutes } from '../modules/notification/notificaiton.route';
+import { serviceCategoryRoutes } from '../modules/serviceCategory/serviceCategory.route';
+import { shopRoutes } from '../modules/shop/shop.route';
 
 const router = Router();
 const moduleRoutes = [
@@ -21,6 +23,14 @@ const moduleRoutes = [
     route: otpRoutes,
   },
 
+  {
+    path: '/shop',
+    route: shopRoutes,
+  },
+  {
+    path: '/categories',
+    route: serviceCategoryRoutes,
+  },
   {
     path: '/notifications',
     route: notificationRoutes,

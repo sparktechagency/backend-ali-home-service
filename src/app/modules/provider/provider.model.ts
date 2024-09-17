@@ -1,16 +1,10 @@
 import { model, Schema } from 'mongoose';
-import { Ilocation } from '../../interface/common';
 import { Iimage } from '../customer/customer.interface';
 import { Iname, IServiceProvider } from './provider.interface';
 
 const NameSchema = new Schema<Iname>({
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
-});
-
-const LocationSchema = new Schema<Ilocation>({
-  coordiantes: { type: [Number], required: true },
-  type: { type: String, enum: ['Point'], required: true },
 });
 
 const ImageSchema = new Schema<Iimage>({
@@ -25,7 +19,6 @@ const ProviderSchema = new Schema<IServiceProvider>({
     type: Schema.Types.ObjectId,
     ref: 'User',
   },
-  location: { type: LocationSchema, required: true },
   countryCode: { type: String, required: true },
   helpLineNumber: { type: String },
   image: { type: ImageSchema, required: true },

@@ -10,6 +10,7 @@ import { sendEmail } from '../../utils/mailSender';
 import { generateOtp } from '../../utils/otpGenerator';
 
 import Customer from '../customer/customer.model';
+import { Provider } from '../provider/provider.model';
 import { UserRole } from '../user/user.interface';
 import User from '../user/user.model';
 import { TchangePassword, Tlogin, TresetPassword } from './auth.interface';
@@ -38,9 +39,9 @@ const login = async (payload: Tlogin) => {
     case UserRole.customer:
       profile = await Customer.findOne({ user: user?._id });
       break;
-    // case 'provider':
-    //   profile = await Customer.findOne({ user: user?._id });
-    //   break;
+    case 'provider':
+      profile = await Provider.findOne({ user: user?._id });
+      break;
 
     default:
       break;
@@ -212,8 +213,8 @@ const refreshToken = async (token: string) => {
   }
 
   const jwtPayload = {
-    userId: user.id,
-    role: user.role,
+    userId: user.id!,
+    role: user.role!,
   };
 
   const accessToken = createToken(
