@@ -9,7 +9,6 @@ const insertCategoryIntoDb = catchAsync(async (req: Request, res: Response) => {
   if (req?.file) {
     image = await uploadToS3(req?.file, 'category/');
   }
-  console.log(image);
   const result = await categoryServices.insertCategoryIntoDb({
     ...req.body,
     image,

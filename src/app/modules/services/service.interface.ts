@@ -1,17 +1,23 @@
-import { ObjectId } from 'mongoose';
-import { Ilocation } from '../../interface/common';
-interface priceDetails {
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+import { Model, ObjectId } from 'mongoose';
+import { Iimage } from '../../interface/common';
+export interface IpriceDetails {
   quote?: boolean;
   range?: {
     min: number;
     max: number;
   };
-  fixed?: number;
+  fixedPrice?: number;
 }
-export interface Ishop {
-  location: Ilocation;
+export interface Iservice {
   category: ObjectId;
-  serviceType: 'quote' | 'range' | 'fixed';
-  priceDetails: priceDetails;
+  shop: ObjectId;
+  isRequestAccept: boolean;
+  serviceType: 'quote' | 'range' | 'fixedPrice';
+  priceDetails: IpriceDetails;
+  totalReviews: number;
+  avgReviews: number;
+  images: Iimage[];
   isDeleted: boolean;
 }
+export interface ServiceModel extends Model<Iservice> {}
