@@ -18,6 +18,14 @@ router.post(
   parseData(),
   userControllers.insertProviderintoDb,
 );
+router.post(
+  '/create-employee',
+  upload.single('file'),
+  parseData(),
+  auth(USER_ROLE.provider),
+  // validateRequest(employeeValidation.insertEmployeeSchema),
+  userControllers.insertEmployeeIntoDb,
+);
 router.patch(
   '/update/:id',
   auth(USER_ROLE.admin),

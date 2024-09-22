@@ -4,6 +4,7 @@ import { otpRoutes } from '../modules/otp/otp.routes';
 import { userRoutes } from '../modules/user/user.route';
 
 import { contentRoues } from '../modules/content/content.route';
+import { employeeRoutes } from '../modules/employee/employee.route';
 import { notificationRoutes } from '../modules/notification/notificaiton.route';
 import { serviceCategoryRoutes } from '../modules/serviceCategory/serviceCategory.route';
 import { serviceRoutes } from '../modules/services/service.route';
@@ -14,6 +15,10 @@ const moduleRoutes = [
   {
     path: '/users',
     route: userRoutes,
+  },
+  {
+    path: '/employees',
+    route: employeeRoutes,
   },
   {
     path: '/auth',

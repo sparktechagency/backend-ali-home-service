@@ -6,6 +6,8 @@ import AppError from '../../error/AppError';
 
 import { Icustomer } from '../customer/customer.interface';
 import Customer from '../customer/customer.model';
+import { IEmployee } from '../employee/employee.interface';
+import Employee from '../employee/employee.model';
 import { IServiceProvider } from '../provider/provider.interface';
 import { Provider } from '../provider/provider.model';
 import { TUser, UserRole } from './user.interface';
@@ -108,6 +110,55 @@ const insertProviderIntoDb = async (
     throw new Error(error as any);
   }
 };
+// employee
+const insertEmployeeIntoDb = async (
+  payload: IEmployee & TUser,
+): Promise<IEmployee | null> => {
+  // check if same number exist
+  const isExistUser = await User.isUserExistByNumber(
+    payload?.countryCode,
+    payload?.phoneNumber,
+  );
+  if (isExistUser) {
+    throw new AppError(
+      httpStatus.CONFLICT,
+      'User already exist with this same number!',
+    );
+  }
+  const session = await mongoose.startSession();
+
+  const otp = {
+    otp: 123456,
+    expiresAt: '2024-09-11T08:30:00.000Z',
+    status: true,
+  };
+  try {
+    session.startTransaction();
+    const insertUser = await User.create([{ ...payload, verification: otp }], {
+      session,
+    });
+    if (!insertUser[0]) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'User not created');
+    }
+    const result = await Employee.create(
+      [
+        {
+          ...payload,
+          user: insertUser[0]?._id,
+        },
+      ],
+      { session },
+    );
+    await session.commitTransaction();
+    await session.endSession();
+    console.log('==================result', result[0]);
+    return result[0];
+  } catch (error) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new Error(error as any);
+  }
+};
 const getme = async (id: string) => {
   const user = await User.findById(id);
   let result;
@@ -117,6 +168,9 @@ const getme = async (id: string) => {
       break;
     case UserRole.provider:
       result = await Provider.findOne({ user }).populate('user');
+      break;
+    case UserRole.employee:
+      result = await Employee.findOne({ user }).populate('user');
       break;
     default:
       break;
@@ -189,6 +243,7 @@ const deleteAccount = async (id: string, password: string) => {
 };
 
 export const userServices = {
+  insertEmployeeIntoDb,
   insertCustomerIntoDb,
   insertProviderIntoDb,
   getme,

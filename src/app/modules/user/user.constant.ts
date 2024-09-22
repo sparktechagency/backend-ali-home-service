@@ -3,6 +3,7 @@ export const USER_ROLE = {
   vendor: 'vendor',
   provider: 'provider',
   sup_admin: 'sup_admin',
+  employee: 'employee',
   user: 'user',
   customer: 'customer',
   all: ['admin', 'vendor', 'user'].join(','),

@@ -4,6 +4,7 @@ import { uploadToS3 } from '../../utils/fileHelper';
 import sendResponse from '../../utils/sendResponse';
 import { USER_ROLE } from './user.constant';
 import { userServices } from './user.service';
+// create customer
 const insertCustomerIntoDb = catchAsync(async (req: Request, res: Response) => {
   let image;
   if (req?.file) {
@@ -22,6 +23,7 @@ const insertCustomerIntoDb = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+// create provider
 const insertProviderintoDb = catchAsync(async (req: Request, res: Response) => {
   let image;
   if (req?.file) {
@@ -35,7 +37,26 @@ const insertProviderintoDb = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'vendor created successfully',
+    message: 'Provider created successfully',
+    data: result,
+  });
+});
+
+// create employee
+const insertEmployeeIntoDb = catchAsync(async (req: Request, res: Response) => {
+  const data = { ...req.body };
+  if (req?.file) {
+    data['image'] = await uploadToS3(req?.file, 'profile/');
+  }
+  data['owner'] = req.user.profileId;
+  const result = await userServices.insertEmployeeIntoDb({
+    ...data,
+    role: USER_ROLE.employee,
+  });
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Employee created successfully',
     data: result,
   });
 });
@@ -116,6 +137,7 @@ const deleteAccount = catchAsync(async (req: Request, res: Response) => {
 export const userControllers = {
   insertCustomerIntoDb,
   insertProviderintoDb,
+  insertEmployeeIntoDb,
   getme,
   updateProfile,
   getAllUsers,
