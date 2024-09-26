@@ -1,0 +1,200 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import QueryBuilder from '../../builder/QueryBuilder';
+import calculatePagination from '../../shared/paginationHelper';
+import { hireRequestFilterableFields } from './hireRequest.constant';
+import { IhireRequest } from './hireRequest.interface';
+import HireRequest from './hireRequest.model';
+
+const insertHireRequestIntoDb = async (payload: IhireRequest) => {
+  const result = await HireRequest.create(payload);
+  return result;
+};
+
+//  get all my hire request
+const getAllMyHireRequest = async (query: Record<string, any>) => {
+  const { searchTerm, ...others } = query;
+  const andCondition: any[] = [];
+
+  // Add searchTerm condition
+  if (searchTerm) {
+    andCondition.push({
+      $or: hireRequestFilterableFields.map((field) => ({
+        [field]: {
+          $regex: searchTerm,
+          $options: 'i',
+        },
+      })),
+    });
+  }
+
+  // Add other filters
+  if (Object.keys(others).length) {
+    andCondition.push({
+      $and: Object.entries(others).map(([field, value]) => ({
+        [field]: value,
+      })),
+    });
+
+    // Add the isDeleted condition
+    andCondition.push({
+      isDeleted: false,
+    });
+
+    // Pagination and sorting
+    const { page, limit } = calculatePagination(query);
+    const skip = (page - 1) * limit;
+
+    // Add main condition
+    const WhereCondition =
+      andCondition.length > 0 ? { $and: andCondition } : {};
+
+    // Create the aggregation pipeline
+    const pipeline: any[] = [
+      {
+        $match: WhereCondition, // Apply filter condition
+      },
+      {
+        $lookup: {
+          from: 'services', // Lookup in 'Service' collection
+          let: { serviceId: '$service' }, // Reference service ID from hireRequest
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ['$_id', '$$serviceId'], // Match service ID
+                },
+              },
+            },
+            {
+              $lookup: {
+                from: 'shops', // Lookup in 'Shop' collection
+                let: { shopId: '$shop' }, // Reference shop ID from service
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $eq: ['$_id', '$$shopId'], // Match shop ID
+                      },
+                    },
+                  },
+                  {
+                    $lookup: {
+                      from: 'providers', // Lookup in 'Provider' collection
+                      let: { providerId: '$provider' }, // Reference provider ID from shop
+                      pipeline: [
+                        {
+                          $match: {
+                            $expr: {
+                              $and: [
+                                { $eq: ['$_id', '$$providerId'] }, // Match provider ID
+                                { $eq: ['$profileId', others?.profileId] }, // Match profileId to provider
+                              ],
+                            },
+                          },
+                        },
+                      ],
+                      as: 'providerDetails', // Get provider details
+                    },
+                  },
+                  {
+                    $unwind: '$providerDetails', // Unwind provider details array
+                  },
+                ],
+                as: 'shopDetails', // Get shop details
+              },
+            },
+            {
+              $unwind: '$shopDetails', // Unwind shop details array
+            },
+          ],
+          as: 'serviceDetails', // Get service details
+        },
+      },
+      {
+        $unwind: '$serviceDetails', // Unwind service details array
+      },
+      {
+        $project: {
+          customer: 1,
+          service: '$serviceDetails._id',
+          shop: '$serviceDetails.shopDetails._id',
+          provider: '$serviceDetails.shopDetails.providerDetails._id',
+          profileId: '$serviceDetails.shopDetails.providerDetails.profileId',
+          address: 1,
+          description: 1,
+          status: 1,
+          priority: 1,
+          isDeleted: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+      {
+        $facet: {
+          total: [{ $count: 'total' }],
+          data: [
+            { $skip: skip }, // Skip for pagination
+            { $limit: limit }, // Limit the number of results
+          ],
+        },
+      },
+    ];
+
+    const result = await HireRequest.aggregate(pipeline);
+
+    const total = result[0]?.total[0]?.total || 0; // Get total count
+    const hireRequests = result[0]?.data || []; // Get paginated data
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      hireRequests,
+      total,
+      page,
+      limit,
+      totalPages,
+    };
+  }
+};
+
+// customer
+
+const getAllHireRequests = async (query: Record<string, any>) => {
+  const hireModel = new QueryBuilder(HireRequest.find(), query)
+    .search([])
+    .filter()
+    .paginate()
+    .sort()
+    .fields();
+
+  const data = await hireModel.modelQuery;
+  const meta = await hireModel.countTotal();
+
+  return {
+    data,
+    meta,
+  };
+};
+
+const getSingleHireReuqest = async (id: string) => {
+  const result = await HireRequest.findById(id).populate('shop customer');
+  return result;
+};
+
+const updateHireRequest = async (
+  id: string,
+  payload: Partial<IhireRequest>,
+) => {
+  const result = await HireRequest.findByIdAndUpdate(id, payload, {
+    new: true,
+  });
+  return result;
+};
+
+export const hirRequestServices = {
+  insertHireRequestIntoDb,
+  getAllHireRequests,
+  getAllMyHireRequest,
+  getSingleHireReuqest,
+  updateHireRequest,
+};

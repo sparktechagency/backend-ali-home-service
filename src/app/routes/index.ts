@@ -5,6 +5,7 @@ import { userRoutes } from '../modules/user/user.route';
 
 import { contentRoues } from '../modules/content/content.route';
 import { employeeRoutes } from '../modules/employee/employee.route';
+import { hireRequestRoutes } from '../modules/hireRequest/hireRequest.route';
 import { notificationRoutes } from '../modules/notification/notificaiton.route';
 import { serviceCategoryRoutes } from '../modules/serviceCategory/serviceCategory.route';
 import { serviceRoutes } from '../modules/services/service.route';
@@ -40,6 +41,10 @@ const moduleRoutes = [
   {
     path: '/notifications',
     route: notificationRoutes,
+  },
+  {
+    path: '/hireRequests',
+    route: hireRequestRoutes,
   },
   {
     path: '/content',
