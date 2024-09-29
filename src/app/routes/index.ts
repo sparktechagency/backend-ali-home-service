@@ -7,6 +7,7 @@ import { contentRoues } from '../modules/content/content.route';
 import { employeeRoutes } from '../modules/employee/employee.route';
 import { hireRequestRoutes } from '../modules/hireRequest/hireRequest.route';
 import { notificationRoutes } from '../modules/notification/notificaiton.route';
+import { quotesRoutes } from '../modules/quotes/quotes.route';
 import { serviceCategoryRoutes } from '../modules/serviceCategory/serviceCategory.route';
 import { serviceRoutes } from '../modules/services/service.route';
 import { shopRoutes } from '../modules/shop/shop.route';
@@ -45,6 +46,10 @@ const moduleRoutes = [
   {
     path: '/hireRequests',
     route: hireRequestRoutes,
+  },
+  {
+    path: '/quotes',
+    route: quotesRoutes,
   },
   {
     path: '/content',
