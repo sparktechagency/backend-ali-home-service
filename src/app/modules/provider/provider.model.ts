@@ -19,6 +19,10 @@ const ProviderSchema = new Schema<IServiceProvider>({
     type: Schema.Types.ObjectId,
     ref: 'User',
   },
+  gender: {
+    type: String,
+    enum: ['Male', 'Female', 'others'],
+  },
   countryCode: { type: String, required: true },
   helpLineNumber: { type: String },
   image: { type: ImageSchema, required: true },

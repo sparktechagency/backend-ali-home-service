@@ -5,7 +5,11 @@ export interface Iname {
   firstName: string;
   lastName: string;
 }
-
+enum gender {
+  Male = 'Male',
+  Female = 'Female',
+  OtherS = 'Others',
+}
 export interface IServiceProvider {
   name: Iname;
   user: ObjectId;
@@ -14,5 +18,6 @@ export interface IServiceProvider {
   countryCode: string;
   helpLineNumber: string;
   image: Iimage;
+  gender: gender;
   isDeleted: boolean;
 }

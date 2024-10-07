@@ -14,7 +14,7 @@ router.post(
   upload.fields([{ name: 'files', maxCount: 5 }]),
   parseData(),
   validateRequest(serviceValidation.InsertserviceSchema),
-  //   auth(USER_ROLE.provider),
+  auth(USER_ROLE.provider),
   ServiceController.InserServiceIntodb,
 );
 

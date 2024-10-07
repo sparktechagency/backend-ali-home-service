@@ -11,6 +11,7 @@ import { generateOtp } from '../../utils/otpGenerator';
 
 import Customer from '../customer/customer.model';
 import { Provider } from '../provider/provider.model';
+import { Shop } from '../shop/shop.model';
 import { UserRole } from '../user/user.interface';
 import User from '../user/user.model';
 import { TchangePassword, Tlogin, TresetPassword } from './auth.interface';
@@ -21,6 +22,7 @@ const login = async (payload: Tlogin) => {
     payload?.countryCode as string,
     payload?.phoneNumber as string,
   );
+  let shop;
   let profile;
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, 'User Not Found');
@@ -41,6 +43,7 @@ const login = async (payload: Tlogin) => {
       break;
     case 'provider':
       profile = await Provider.findOne({ user: user?._id });
+      shop = await Shop.findOne({ provider: profile?._id }).select('_id');
       break;
 
     default:
@@ -53,6 +56,7 @@ const login = async (payload: Tlogin) => {
     userId: user?._id,
     profileId: profile?._id,
     role: user.role,
+    shop: shop?._id,
   };
   const accessToken = createToken(
     jwtPayload,

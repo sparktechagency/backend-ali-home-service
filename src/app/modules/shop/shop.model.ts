@@ -7,7 +7,7 @@ const ShopSchema = new Schema<Ishop, ShopModel>(
     provider: { type: Schema.Types.ObjectId, ref: 'Provider', required: true },
     name: { type: String, required: true },
     address: { type: String, required: true },
-
+    helpLineNumber: { type: Number, required: true },
     location: {
       coordiantes: [Number],
       type: {

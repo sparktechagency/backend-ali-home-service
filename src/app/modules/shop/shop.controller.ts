@@ -32,7 +32,7 @@ const getSingleShop = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Shop retrived successfully',
+    message: 'Shop retrieved successfully',
     data: result,
   });
 });
@@ -41,7 +41,7 @@ const getmyshop = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Shop retrived successfully',
+    message: 'Shop retrieved successfully',
     data: result,
   });
 });

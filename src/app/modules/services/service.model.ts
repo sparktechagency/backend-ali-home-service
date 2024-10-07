@@ -29,6 +29,8 @@ const ServiceSchema = new Schema<Iservice>(
     totalReviews: { type: Number, default: 0 },
     avgReviews: { type: Number, default: 0 },
     images: [ImageSchema],
+    description: { type: String, required: true },
+    duration: { type: Number, required: true },
     isDeleted: { type: Boolean, default: false },
   },
   {

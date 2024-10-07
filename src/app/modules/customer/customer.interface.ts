@@ -4,7 +4,11 @@ export interface name {
   firstName: string;
   lastName: string;
 }
-
+enum gender {
+  Male = 'Male',
+  Female = 'Female',
+  OtherS = 'Others',
+}
 interface location {
   coordiantes: [number];
   type: string;
@@ -22,4 +26,6 @@ export interface Icustomer {
   location: location;
   image: string;
   isDeleted: boolean;
+  dateOfBirth: string;
+  gender: gender;
 }

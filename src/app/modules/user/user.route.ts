@@ -27,8 +27,14 @@ router.post(
   userControllers.insertEmployeeIntoDb,
 );
 router.patch(
+  '/',
+  auth(USER_ROLE.provider, USER_ROLE.customer, USER_ROLE.employee),
+  upload.single('file'),
+  userControllers.updateProfile,
+);
+router.patch(
   '/update/:id',
-  auth(USER_ROLE.admin),
+  auth(USER_ROLE.provider, USER_ROLE.customer, USER_ROLE.employee),
   upload.single('file'),
   parseData(),
   userControllers.updateUser,
@@ -38,13 +44,7 @@ router.get(
   auth(USER_ROLE.sup_admin, USER_ROLE.customer),
   userControllers.getme,
 );
-router.patch(
-  '/',
-  auth(USER_ROLE.customer, USER_ROLE.sup_admin, USER_ROLE.vendor),
 
-  parseData(),
-  userControllers.updateProfile,
-);
 router.get(
   '/all',
   auth(USER_ROLE.vendor, USER_ROLE.admin),

@@ -34,7 +34,14 @@ const CustomerSchema = new Schema<Icustomer>(
       type: Schema.Types.ObjectId,
       ref: 'User',
     },
-
+    dateOfBirth: {
+      type: String,
+      required: true,
+    },
+    gender: {
+      type: String,
+      enum: ['Male', 'Female', 'others'],
+    },
     location: {
       coordiantes: [Number],
       type: {

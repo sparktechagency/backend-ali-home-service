@@ -152,12 +152,10 @@ const getAllQuotes = async (query: Record<string, any>) => {
     meta,
   };
 };
-
 const getSingleQuotes = async (id: string) => {
   const result = await Quotes.findById(id).populate('service');
   return result;
 };
-
 const updateQuotes = async (id: string, payload: Partial<IQuotes>) => {
   const result = await Quotes.findByIdAndUpdate(id, payload, { new: true });
   return result;

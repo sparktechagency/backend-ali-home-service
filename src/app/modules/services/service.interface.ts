@@ -16,6 +16,8 @@ export interface Iservice {
   serviceType: 'quote' | 'range' | 'fixedPrice';
   priceDetails: IpriceDetails;
   totalReviews: number;
+  duration: number;
+  description: string;
   avgReviews: number;
   images: Iimage[];
   isDeleted: boolean;

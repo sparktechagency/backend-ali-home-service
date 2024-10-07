@@ -5,6 +5,7 @@ export interface Ishop {
   provider: ObjectId;
   address: string;
   location: Ilocation;
+  helpLineNumber: number;
   name: string;
   license?: string;
   image: Iimage;

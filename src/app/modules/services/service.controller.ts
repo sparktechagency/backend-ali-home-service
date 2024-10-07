@@ -7,7 +7,7 @@ import { serviceServices } from './service.service';
 
 const InserServiceIntodb = catchAsync(async (req: Request, res: Response) => {
   let images;
-
+  console.log(req.user, 'hitted');
   if (req?.files) {
     // Casting req.files to Express.Multer.File[]
     // @ts-ignore
@@ -21,6 +21,7 @@ const InserServiceIntodb = catchAsync(async (req: Request, res: Response) => {
   }
   const result = await serviceServices.insertServiceIntoDb({
     ...req.body,
+    shop: req?.user?.shop,
     images,
   });
   sendResponse(res, {

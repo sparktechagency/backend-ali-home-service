@@ -9,7 +9,12 @@ const insertServiceIntoDb = async (payload: Iservice) => {
 };
 
 const getAllServices = async (query: Record<string, any>) => {
-  const serviceModel = new QueryBuilder(Service.find(), query)
+  const serviceModel = new QueryBuilder(
+    Service.find()
+      .populate({ path: 'category', select: 'title' })
+      .populate('shop'),
+    query,
+  )
     .filter()
     .search([])
     .fields()
