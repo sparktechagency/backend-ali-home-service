@@ -68,6 +68,9 @@ const UserSchema = new Schema<TUser, UserModel>(
       type: VerificationSchema,
       required: true,
     },
+    fcmToken: {
+      type: String,
+    },
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt fields

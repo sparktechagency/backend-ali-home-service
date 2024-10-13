@@ -19,7 +19,6 @@ router.post(
 router.get(
   '/provider',
   auth(USER_ROLE.provider),
-
   hireRequestController.getAllMyHireRequest,
 );
 router.get(

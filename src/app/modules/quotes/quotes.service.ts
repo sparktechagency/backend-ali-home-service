@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { quotesSearchabFields } from './quotes.constant';
 import { IQuotes } from './quotes.interface';
@@ -8,9 +9,8 @@ const insertQuotesintoDb = async (payload: IQuotes) => {
   const result = await Quotes.create(payload);
   return result;
 };
-
 const getProviderWiseQuotes = async (query: Record<string, any>) => {
-  const { searchTerm, providerId, ...others } = query;
+  const { searchTerm, shop, ...others } = query;
   const andCondition: any[] = [];
 
   // Add searchTerm condition
@@ -39,15 +39,12 @@ const getProviderWiseQuotes = async (query: Record<string, any>) => {
     isDeleted: false,
   });
 
-  // Pagination and sorting
   const page = query.page ? parseInt(query.page) : 1;
   const limit = query.limit ? parseInt(query.limit) : 10;
   const skip = (page - 1) * limit;
 
-  // Main condition
   const WhereCondition = andCondition.length > 0 ? { $and: andCondition } : {};
 
-  // Create the aggregation pipeline
   const pipeline: any[] = [
     {
       $match: WhereCondition, // Apply filter conditions
@@ -60,45 +57,46 @@ const getProviderWiseQuotes = async (query: Record<string, any>) => {
           {
             $match: {
               $expr: {
-                $eq: ['$_id', '$$serviceId'], // Match service ID
+                $eq: ['$_id', '$$serviceId'], // Match the service
               },
             },
           },
-          {
-            $lookup: {
-              from: 'shops', // Lookup in 'Shop' collection
-              let: { shopId: '$shop' }, // Reference shop ID from service
-              pipeline: [
+          ...(shop
+            ? [
                 {
-                  $match: {
-                    $expr: {
-                      $and: [
-                        { $eq: ['$_id', '$$shopId'] }, // Match shop ID
-                        { $eq: ['$provider', providerId] }, // Match provider ID from query
-                      ],
-                    },
+                  $lookup: {
+                    from: 'shops', // Lookup in 'Shop' collection
+                    let: { shopId: '$shop' }, // Reference shop ID from service
+                    pipeline: [
+                      {
+                        $match: {
+                          $expr: {
+                            $eq: ['$_id', '$$shopId'], // Match shop ID
+                          },
+                        },
+                      },
+                    ],
+                    as: 'shopDetails', // Get shop details
                   },
                 },
-              ],
-              as: 'shopDetails', // Get shop details
-            },
-          },
-          {
-            $unwind: '$shopDetails', // Unwind shop details array
-          },
+                { $unwind: '$shopDetails' },
+
+                {
+                  $match: {
+                    'shopDetails._id': new mongoose.Types.ObjectId(shop), // Match provided shop ID
+                  },
+                },
+              ]
+            : []), // Only apply shop match if shop ID is provided
         ],
         as: 'serviceDetails', // Get service details
       },
     },
-    {
-      $unwind: '$serviceDetails', // Unwind service details array
-    },
+    { $unwind: '$serviceDetails' }, // Unwind service details array
     {
       $project: {
         customer: 1,
         service: '$serviceDetails._id',
-        shop: '$serviceDetails.shopDetails._id',
-        provider: '$serviceDetails.shopDetails.provider',
         fee: 1,
         date: 1,
         status: 1,
@@ -123,7 +121,7 @@ const getProviderWiseQuotes = async (query: Record<string, any>) => {
   const total = result[0]?.total[0]?.total || 0; // Get the total count
   const quotes = result[0]?.data || []; // Get paginated quotes
 
-  const totalPages = Math.ceil(total / limit);
+  const totalPage = Math.ceil(total / limit);
 
   return {
     data: quotes,
@@ -131,13 +129,28 @@ const getProviderWiseQuotes = async (query: Record<string, any>) => {
       total,
       page,
       limit,
-      totalPages,
+      totalPage,
     },
   };
 };
 
 const getAllQuotes = async (query: Record<string, any>) => {
-  const QuoteModel = new QueryBuilder(Quotes.find(), query)
+  const QuoteModel = new QueryBuilder(
+    Quotes.find().populate({
+      path: 'service', // Populate the service field
+      populate: [
+        {
+          path: 'shop',
+          select: 'name address',
+        },
+        {
+          path: 'category',
+          select: 'title',
+        },
+      ],
+    }),
+    query,
+  )
     .search([])
     .filter()
     .paginate()
@@ -161,10 +174,41 @@ const updateQuotes = async (id: string, payload: Partial<IQuotes>) => {
   return result;
 };
 
+// accept quote
+const acceptQuote = async (id: string) => {
+  const result = await Quotes.findByIdAndUpdate(
+    id,
+    { $set: { status: 'accepted' } },
+    { new: true },
+  );
+  return result;
+};
+// reject quote
+const rejectQuote = async (id: string) => {
+  const result = await Quotes.findByIdAndUpdate(
+    id,
+    { $set: { status: 'rejected' } },
+    { new: true },
+  );
+  return result;
+};
+// reject quote
+const cancelledQuote = async (id: string) => {
+  const result = await Quotes.findByIdAndUpdate(
+    id,
+    { $set: { status: 'canceled' } },
+    { new: true },
+  );
+  return result;
+};
+
 export const quotesServices = {
   insertQuotesintoDb,
   getAllQuotes,
   getProviderWiseQuotes,
   getSingleQuotes,
   updateQuotes,
+  acceptQuote,
+  rejectQuote,
+  cancelledQuote,
 };

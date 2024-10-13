@@ -32,6 +32,7 @@ export interface TUser {
   isDeleted: boolean;
   verification: Verification;
   countryCode: string;
+  fcmToken?: string;
 }
 
 export interface UserModel extends Model<TUser> {

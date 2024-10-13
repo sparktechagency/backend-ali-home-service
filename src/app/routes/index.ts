@@ -3,6 +3,7 @@ import { authRoutes } from '../modules/auth/auth.route';
 import { otpRoutes } from '../modules/otp/otp.routes';
 import { userRoutes } from '../modules/user/user.route';
 
+import { coinRoutes } from '../modules/coins/coins.route';
 import { contentRoues } from '../modules/content/content.route';
 import { employeeRoutes } from '../modules/employee/employee.route';
 import { hireRequestRoutes } from '../modules/hireRequest/hireRequest.route';
@@ -46,6 +47,10 @@ const moduleRoutes = [
   {
     path: '/hireRequests',
     route: hireRequestRoutes,
+  },
+  {
+    path: '/coins',
+    route: coinRoutes,
   },
   {
     path: '/quotes',

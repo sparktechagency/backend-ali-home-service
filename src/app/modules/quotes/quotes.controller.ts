@@ -4,10 +4,7 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { quotesServices } from './quotes.service';
 const sendQuoteToCustomer = catchAsync(async (req: Request, res: Response) => {
-  const data = { ...req.body };
-  data['customer'] = req.user.profileId;
-
-  const result = await quotesServices.insertQuotesintoDb(data);
+  const result = await quotesServices.insertQuotesintoDb(req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -17,12 +14,15 @@ const sendQuoteToCustomer = catchAsync(async (req: Request, res: Response) => {
 });
 const getProviderWiseQuotes = catchAsync(
   async (req: Request, res: Response) => {
-    const result = await quotesServices.getProviderWiseQuotes(req.query);
+    const query = { ...req.query };
+    query['shop'] = req.user.shop;
+    const result = await quotesServices.getProviderWiseQuotes(query);
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: 'Quotes retrieved successfully',
-      data: result,
+      data: result?.data,
+      meta: result?.meta,
     });
   },
 );
@@ -53,6 +53,33 @@ const updateQuotes = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const acceptQuote = catchAsync(async (req: Request, res: Response) => {
+  const result = await quotesServices.acceptQuote(req.params.id);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Quotes accepted successfully',
+    data: result,
+  });
+});
+const rejectQuote = catchAsync(async (req: Request, res: Response) => {
+  const result = await quotesServices.rejectQuote(req.params.id);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Quotes rejected successfully',
+    data: result,
+  });
+});
+const cancelledQuote = catchAsync(async (req: Request, res: Response) => {
+  const result = await quotesServices.rejectQuote(req.params.id);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Quotes cancelled successfully',
+    data: result,
+  });
+});
 
 export const quotesController = {
   sendQuoteToCustomer,
@@ -60,4 +87,7 @@ export const quotesController = {
   getAllQuotes,
   getSingleQuotes,
   updateQuotes,
+  acceptQuote,
+  rejectQuote,
+  cancelledQuote,
 };
