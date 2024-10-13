@@ -12,7 +12,7 @@ const insertHireRequestIntoDb = async (payload: IhireRequest) => {
 
 //  get all my hire request
 const getAllMyHireRequest = async (query: Record<string, any>) => {
-  const { searchTerm, ...others } = query;
+  const { searchTerm, profileId, ...others } = query;
   const andCondition: any[] = [];
 
   // Add searchTerm condition
@@ -36,131 +36,167 @@ const getAllMyHireRequest = async (query: Record<string, any>) => {
     });
 
     // Add the isDeleted condition
-    andCondition.push({
-      isDeleted: false,
-    });
+    andCondition.push({ isDeleted: false });
+  }
 
-    // Pagination and sorting
-    const { page, limit } = calculatePagination(query);
-    const skip = (page - 1) * limit;
+  // Pagination and sorting
+  const { page, limit } = calculatePagination(query);
+  const skip = (page - 1) * limit;
 
-    // Add main condition
-    const WhereCondition =
-      andCondition.length > 0 ? { $and: andCondition } : {};
+  // Add main condition
+  const WhereCondition = andCondition.length > 0 ? { $and: andCondition } : {};
 
-    // Create the aggregation pipeline
-    const pipeline: any[] = [
-      {
-        $match: WhereCondition, // Apply filter condition
-      },
-      {
-        $lookup: {
-          from: 'services', // Lookup in 'Service' collection
-          let: { serviceId: '$service' }, // Reference service ID from hireRequest
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $eq: ['$_id', '$$serviceId'], // Match service ID
-                },
+  // Create the aggregation pipeline
+  const pipeline: any[] = [
+    {
+      $match: WhereCondition, // Apply filter condition
+    },
+    {
+      $lookup: {
+        from: 'services', // Lookup in 'Service' collection
+        let: { serviceId: '$service' }, // Reference service ID from hireRequest
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ['$_id', '$$serviceId'], // Match service ID
               },
             },
-            {
-              $lookup: {
-                from: 'shops', // Lookup in 'Shop' collection
-                let: { shopId: '$shop' }, // Reference shop ID from service
-                pipeline: [
-                  {
-                    $match: {
-                      $expr: {
-                        $eq: ['$_id', '$$shopId'], // Match shop ID
-                      },
+          },
+          {
+            $lookup: {
+              from: 'shops', // Lookup in 'Shop' collection
+              let: { shopId: '$shop' }, // Reference shop ID from service
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $eq: ['$_id', '$$shopId'], // Match shop ID
                     },
                   },
-                  {
-                    $lookup: {
-                      from: 'providers', // Lookup in 'Provider' collection
-                      let: { providerId: '$provider' }, // Reference provider ID from shop
-                      pipeline: [
-                        {
-                          $match: {
-                            $expr: {
-                              $and: [
-                                { $eq: ['$_id', '$$providerId'] }, // Match provider ID
-                                { $eq: ['$profileId', others?.profileId] }, // Match profileId to provider
-                              ],
-                            },
+                },
+                {
+                  $lookup: {
+                    from: 'providers', // Lookup in 'Provider' collection
+                    let: { providerId: '$provider' }, // Reference provider ID from shop
+                    pipeline: [
+                      {
+                        $match: {
+                          $expr: {
+                            $and: [
+                              { $eq: ['$_id', '$$providerId'] }, // Match provider ID
+                              { $eq: ['$profileId', profileId] }, // Match profileId to provider
+                            ],
                           },
                         },
-                      ],
-                      as: 'providerDetails', // Get provider details
-                    },
+                      },
+                    ],
+                    as: 'providerDetails', // Get provider details
                   },
-                  {
-                    $unwind: '$providerDetails', // Unwind provider details array
+                },
+                {
+                  $unwind: {
+                    path: '$providerDetails', // Unwind provider details array
+                    preserveNullAndEmptyArrays: true, // Keep shops without providers
                   },
-                ],
-                as: 'shopDetails', // Get shop details
-              },
+                },
+              ],
+              as: 'shopDetails', // Get shop details
             },
-            {
-              $unwind: '$shopDetails', // Unwind shop details array
+          },
+          {
+            $unwind: {
+              path: '$shopDetails', // Unwind shop details array
+              preserveNullAndEmptyArrays: true, // Keep services without shops
             },
-          ],
-          as: 'serviceDetails', // Get service details
-        },
+          },
+        ],
+        as: 'serviceDetails', // Get service details
       },
-      {
-        $unwind: '$serviceDetails', // Unwind service details array
+    },
+
+    {
+      $unwind: {
+        path: '$serviceDetails', // Unwind service details array
+        preserveNullAndEmptyArrays: true, // Keep hire requests without services
       },
-      {
-        $project: {
-          customer: 1,
-          service: '$serviceDetails._id',
-          shop: '$serviceDetails.shopDetails._id',
-          provider: '$serviceDetails.shopDetails.providerDetails._id',
-          profileId: '$serviceDetails.shopDetails.providerDetails.profileId',
-          address: 1,
-          description: 1,
-          status: 1,
-          priority: 1,
-          isDeleted: 1,
-          createdAt: 1,
-          updatedAt: 1,
-        },
+    },
+    {
+      $lookup: {
+        from: 'customers', // Lookup in 'Customer' collection
+        localField: 'customer', // Field in HireRequest
+        foreignField: '_id', // Field in Customer
+        as: 'customerDetails', // Output array field for customer details
       },
-      {
-        $facet: {
-          total: [{ $count: 'total' }],
-          data: [
-            { $skip: skip }, // Skip for pagination
-            { $limit: limit }, // Limit the number of results
-          ],
-        },
+    },
+    {
+      $unwind: '$customerDetails', // Unwind to get single customer object
+    },
+    {
+      $project: {
+        customerName: '$customerDetails.name',
+        customerImage: '$customerDetails.image',
+        service: '$serviceDetails._id',
+        shop: '$serviceDetails.shopDetails._id',
+        provider: '$serviceDetails.shopDetails.providerDetails._id',
+        profileId: '$serviceDetails.shopDetails.providerDetails.profileId',
+        address: 1,
+        description: 1,
+        status: 1,
+        priority: 1,
+        isDeleted: 1,
+        createdAt: 1,
+        updatedAt: 1,
       },
-    ];
+    },
+    {
+      $facet: {
+        total: [{ $count: 'total' }],
+        data: [
+          { $skip: skip }, // Skip for pagination
+          { $limit: limit }, // Limit the number of results
+        ],
+      },
+    },
+  ];
 
-    const result = await HireRequest.aggregate(pipeline);
+  const result = await HireRequest.aggregate(pipeline);
 
-    const total = result[0]?.total[0]?.total || 0; // Get total count
-    const hireRequests = result[0]?.data || []; // Get paginated data
+  const total = result[0]?.total[0]?.total || 0; // Get total count
+  const data = result[0]?.data || []; // Get paginated data
 
-    const totalPages = Math.ceil(total / limit);
+  const totalPage = Math.ceil(total / limit);
 
-    return {
-      hireRequests,
+  return {
+    data,
+    meta: {
       total,
       page,
       limit,
-      totalPages,
-    };
-  }
+      totalPage,
+    },
+  };
 };
 
 // customer
 
 const getAllHireRequests = async (query: Record<string, any>) => {
-  const hireModel = new QueryBuilder(HireRequest.find(), query)
+  const hireModel = new QueryBuilder(
+    HireRequest.find().populate({
+      path: 'service',
+      populate: [
+        {
+          path: 'category', // Populate category within service
+          select: 'title', // Replace with actual fields from category
+        },
+        {
+          path: 'shop', // Populate shop within service
+          select: 'name', // Replace with actual fields from shop
+        },
+      ],
+    }),
+    query,
+  )
     .search([])
     .filter()
     .paginate()
@@ -177,7 +213,7 @@ const getAllHireRequests = async (query: Record<string, any>) => {
 };
 
 const getSingleHireReuqest = async (id: string) => {
-  const result = await HireRequest.findById(id).populate('shop customer');
+  const result = await HireRequest.findById(id);
   return result;
 };
 

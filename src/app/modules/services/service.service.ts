@@ -30,6 +30,13 @@ const getAllServices = async (query: Record<string, any>) => {
   };
 };
 
+const getMyServices = async (id: string) => {
+  const result = await Service.find({ shop: id }).populate({
+    path: 'category',
+    select: 'image title',
+  });
+  return result;
+};
 const getSingleService = async (id: string) => {
   const result = await Service.findById(id).populate('shop');
   return result;
@@ -42,6 +49,7 @@ const updateService = async (id: string, payload: Partial<Iservice>) => {
 
 export const serviceServices = {
   insertServiceIntoDb,
+  getMyServices,
   getAllServices,
   getSingleService,
   updateService,

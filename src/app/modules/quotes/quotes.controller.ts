@@ -4,7 +4,10 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { quotesServices } from './quotes.service';
 const sendQuoteToCustomer = catchAsync(async (req: Request, res: Response) => {
-  const result = await quotesServices.insertQuotesintoDb(req.body);
+  const data = { ...req.body };
+  data['customer'] = req.user.profileId;
+
+  const result = await quotesServices.insertQuotesintoDb(data);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

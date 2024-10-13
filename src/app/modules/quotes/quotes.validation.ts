@@ -4,7 +4,7 @@ import { z } from 'zod';
 const InsertQuotesSchema = z.object({
   service: z.instanceof(Types.ObjectId),
   request: z.instanceof(Types.ObjectId).optional(),
-  customer: z.instanceof(Types.ObjectId),
+  customer: z.instanceof(Types.ObjectId).optional(),
   fee: z.number({ required_error: 'fee is required' }),
   date: z.string({ required_error: 'date is required' }),
 });

@@ -41,6 +41,16 @@ const getAllServices = catchAsync(async (req: Request, res: Response) => {
     meta: result?.meta,
   });
 });
+const getMyServices = catchAsync(async (req: Request, res: Response) => {
+  const result = await serviceServices.getMyServices(req.user.shop);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Services retrieved successfully',
+    data: result,
+  });
+});
+
 const getSingleService = catchAsync(async (req: Request, res: Response) => {
   const result = await serviceServices.getSingleService(req.params.id);
   sendResponse(res, {
@@ -74,6 +84,7 @@ const updateService = catchAsync(async (req: Request, res: Response) => {
 
 export const ServiceController = {
   InserServiceIntodb,
+  getMyServices,
   getAllServices,
   updateService,
   getSingleService,

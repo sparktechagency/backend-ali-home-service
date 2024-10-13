@@ -41,7 +41,7 @@ router.patch(
 );
 router.get(
   '/profile',
-  auth(USER_ROLE.sup_admin, USER_ROLE.customer),
+  auth(USER_ROLE.sup_admin, USER_ROLE.customer, USER_ROLE.provider),
   userControllers.getme,
 );
 

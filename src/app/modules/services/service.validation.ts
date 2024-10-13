@@ -22,7 +22,7 @@ const priceDetailsSchema = z.object({
 const InsertserviceSchema = z.object({
   body: z.object({
     category: objectIdSchema,
-    shop: objectIdSchema,
+    // shop: objectIdSchema.optional(),
     isRequestAccept: z.boolean(),
     serviceType: z.enum(['quote', 'range', 'fixedPrice']),
     priceDetails: priceDetailsSchema,

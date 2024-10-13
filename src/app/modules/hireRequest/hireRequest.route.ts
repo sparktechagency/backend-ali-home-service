@@ -2,8 +2,10 @@ import { Router } from 'express';
 import auth from '../../middleware/auth';
 import upload from '../../middleware/fileUpload';
 import parseData from '../../middleware/parseData';
+import validateRequest from '../../middleware/validateRequest';
 import { USER_ROLE } from '../user/user.constant';
 import { hireRequestController } from './hireRequest.controller';
+import { hireRequestValidation } from './hireRequest.validation';
 
 const router = Router();
 router.post(
@@ -11,7 +13,7 @@ router.post(
   upload.fields([{ name: 'files', maxCount: 5 }]),
   parseData(),
   auth(USER_ROLE.customer),
-  //   validateRequest(hireRequestValidation.insertHireRequestSchema),
+  validateRequest(hireRequestValidation.insertHireRequestSchema),
   hireRequestController.insertHireRequestIntoDb,
 );
 router.get(

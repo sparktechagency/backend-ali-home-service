@@ -17,8 +17,13 @@ router.post(
   auth(USER_ROLE.provider),
   ServiceController.InserServiceIntodb,
 );
-
+router.get(
+  '/my-services',
+  auth(USER_ROLE.provider),
+  ServiceController.getMyServices,
+);
 router.get('/', ServiceController.getAllServices);
+
 router.get('/:id', ServiceController.getSingleService);
 router.patch(
   '/:id',

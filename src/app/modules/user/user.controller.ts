@@ -44,11 +44,16 @@ const insertProviderintoDb = catchAsync(async (req: Request, res: Response) => {
 
 // create employee
 const insertEmployeeIntoDb = catchAsync(async (req: Request, res: Response) => {
-  const data = { ...req.body };
-  if (req?.file) {
-    data['image'] = await uploadToS3(req?.file, 'profile/');
-  }
-  data['owner'] = req.user.profileId;
+  console.log(req.user);
+  const data = {
+    ...req.body,
+    image: req?.file ? await uploadToS3(req.file, 'profile/') : undefined,
+    owner: req.user.profileId,
+    shop: req.user.shop,
+  };
+
+  // Optional: Remove `image` if it's `undefined`
+  if (!data.image) delete data.image;
   const result = await userServices.insertEmployeeIntoDb({
     ...data,
     role: USER_ROLE.employee,

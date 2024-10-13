@@ -10,7 +10,6 @@ import { hirRequestServices } from './hireRequest.service';
 const insertHireRequestIntoDb = catchAsync(
   async (req: Request, res: Response) => {
     const data = { ...req.body, customer: req.user.profileId };
-    console.log(data);
     if (req?.files) {
       // Casting req.files to Express.Multer.File[]
       // @ts-ignore
@@ -23,7 +22,7 @@ const insertHireRequestIntoDb = catchAsync(
       );
     }
 
-    const result = await hirRequestServices.insertHireRequestIntoDb(req.body);
+    const result = await hirRequestServices.insertHireRequestIntoDb(data);
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -42,7 +41,8 @@ const getAllMyHireRequest = catchAsync(async (req: Request, res: Response) => {
     statusCode: httpStatus.OK,
     success: true,
     message: 'Hire Requests Retrieved successfully',
-    data: result,
+    data: result?.data,
+    meta: result?.meta,
   });
 });
 
