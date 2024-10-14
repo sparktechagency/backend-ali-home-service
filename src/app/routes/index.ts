@@ -8,6 +8,7 @@ import { contentRoues } from '../modules/content/content.route';
 import { employeeRoutes } from '../modules/employee/employee.route';
 import { hireRequestRoutes } from '../modules/hireRequest/hireRequest.route';
 import { notificationRoutes } from '../modules/notification/notificaiton.route';
+import { paymentRoutes } from '../modules/payment/payment.route';
 import { quotesRoutes } from '../modules/quotes/quotes.route';
 import { serviceCategoryRoutes } from '../modules/serviceCategory/serviceCategory.route';
 import { serviceRoutes } from '../modules/services/service.route';
@@ -55,6 +56,10 @@ const moduleRoutes = [
   {
     path: '/quotes',
     route: quotesRoutes,
+  },
+  {
+    path: '/payments',
+    route: paymentRoutes,
   },
   {
     path: '/content',

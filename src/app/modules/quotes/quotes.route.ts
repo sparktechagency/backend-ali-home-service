@@ -53,5 +53,10 @@ router.patch(
   auth(USER_ROLE.customer, USER_ROLE.provider),
   quotesController.cancelledQuote,
 );
+router.patch(
+  '/accept/:id',
+  auth(USER_ROLE.customer, USER_ROLE.provider),
+  quotesController.acceptCompletationRequest,
+);
 
 export const quotesRoutes = router;

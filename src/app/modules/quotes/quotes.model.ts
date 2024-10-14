@@ -1,6 +1,7 @@
 import { Schema, model } from 'mongoose';
+import { IQuotes } from './quotes.interface';
 
-const QuotesSchema = new Schema(
+const QuotesSchema = new Schema<IQuotes>(
   {
     service: {
       type: Schema.Types.ObjectId,
@@ -24,11 +25,23 @@ const QuotesSchema = new Schema(
       type: String,
       required: true,
     },
+    isReviewed: {
+      type: Boolean,
+      default: false,
+    },
     status: {
       type: String,
       enum: ['pending', 'accepted', 'rejected', 'completed', 'canceled'],
       required: true,
       default: 'pending',
+    },
+    isPaid: {
+      type: Boolean,
+      default: false,
+    },
+    isProviderAccept: {
+      type: Boolean,
+      default: false,
     },
     isDeleted: {
       type: Boolean,

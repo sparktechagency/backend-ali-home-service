@@ -80,6 +80,19 @@ const cancelledQuote = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const acceptCompletationRequest = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await quotesServices.acceptCompletationRequest(
+      req.params.id,
+    );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Request accepted successfully',
+      data: result,
+    });
+  },
+);
 
 export const quotesController = {
   sendQuoteToCustomer,
@@ -90,4 +103,5 @@ export const quotesController = {
   acceptQuote,
   rejectQuote,
   cancelledQuote,
+  acceptCompletationRequest,
 };

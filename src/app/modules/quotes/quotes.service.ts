@@ -202,6 +202,17 @@ const cancelledQuote = async (id: string) => {
   return result;
 };
 
+// accetpcompletation offer
+
+const acceptCompletationRequest = async (id: string) => {
+  const result = await Quotes.findByIdAndUpdate(
+    id,
+    { isProviderAccept: true },
+    { new: true },
+  );
+  return result;
+};
+
 export const quotesServices = {
   insertQuotesintoDb,
   getAllQuotes,
@@ -211,4 +222,5 @@ export const quotesServices = {
   acceptQuote,
   rejectQuote,
   cancelledQuote,
+  acceptCompletationRequest,
 };
