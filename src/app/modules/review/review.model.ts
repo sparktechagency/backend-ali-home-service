@@ -8,9 +8,9 @@ const reviewSchema = new Schema<Ireview>(
       ref: 'Service', // Assuming you have a Service model
       required: true,
     },
-    order: {
+    quote: {
       type: Schema.Types.ObjectId,
-      ref: 'Order', // Assuming you have an Order model
+      ref: 'Quote', // Assuming you have an Order model
       required: true,
     },
     comment: {
@@ -21,11 +21,12 @@ const reviewSchema = new Schema<Ireview>(
     rating: {
       type: Number,
       required: true,
-      min: 1, // Assuming rating is between 1 and 5
+      min: 1,
       max: 5,
     },
     customer: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'Customer',
       required: true,
     },
     isDeleted: {
@@ -33,7 +34,7 @@ const reviewSchema = new Schema<Ireview>(
       default: false,
     },
   },
-  { timestamps: true }, // Automatically manage createdAt and updatedAt fields
+  { timestamps: true },
 );
 
 // Create and export the model
