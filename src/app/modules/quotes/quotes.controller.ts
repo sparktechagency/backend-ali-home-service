@@ -93,6 +93,19 @@ const acceptCompletationRequest = catchAsync(
     });
   },
 );
+const getQuotesStatusSummary = catchAsync(
+  async (req: Request, res: Response) => {
+    const query = { ...req.query };
+    query['shop'] = req.user.shop;
+    const result = await quotesServices.getQuotesStatusSummary(query);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Quote summery retrieved successfully',
+      data: result,
+    });
+  },
+);
 
 export const quotesController = {
   sendQuoteToCustomer,
@@ -104,4 +117,5 @@ export const quotesController = {
   rejectQuote,
   cancelledQuote,
   acceptCompletationRequest,
+  getQuotesStatusSummary,
 };

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
@@ -10,7 +11,7 @@ const insertQuotesintoDb = async (payload: IQuotes) => {
   return result;
 };
 const getProviderWiseQuotes = async (query: Record<string, any>) => {
-  const { searchTerm, shop, ...others } = query;
+  const { searchTerm, shop, page: pages, ...others } = query;
   const andCondition: any[] = [];
 
   // Add searchTerm condition
@@ -79,8 +80,7 @@ const getProviderWiseQuotes = async (query: Record<string, any>) => {
                     as: 'shopDetails', // Get shop details
                   },
                 },
-                { $unwind: '$shopDetails' },
-
+                { $unwind: '$shopDetails' }, // Unwind shop details array
                 {
                   $match: {
                     'shopDetails._id': new mongoose.Types.ObjectId(shop), // Match provided shop ID
@@ -93,10 +93,81 @@ const getProviderWiseQuotes = async (query: Record<string, any>) => {
       },
     },
     { $unwind: '$serviceDetails' }, // Unwind service details array
+
+    {
+      $lookup: {
+        from: 'categories', // Lookup in 'customers' collection
+        localField: 'serviceDetails.category', // Reference customer field from quotes
+        foreignField: '_id', // Match customer by ID
+        as: 'categoryDetails', // Get customer details
+      },
+    },
+    {
+      $unwind: {
+        path: '$categoryDetails',
+        preserveNullAndEmptyArrays: true, // Optional: to handle cases where there are no matches
+      },
+    },
+
+    // Populate customer field and select name, location, and address fields
+    {
+      $lookup: {
+        from: 'customers', // Lookup in 'customers' collection
+        localField: 'customer', // Reference customer field from quotes
+        foreignField: '_id', // Match customer by ID
+        as: 'customerDetails', // Get customer details
+      },
+    },
+    {
+      $unwind: {
+        path: '$customerDetails',
+        preserveNullAndEmptyArrays: true, // Optional: to handle cases where there are no matches
+      },
+    },
+    {
+      $lookup: {
+        from: 'users', // Lookup in 'User' collection
+        localField: 'customerDetails.user', // Reference user field from customerDetails
+        foreignField: '_id', // Match user by ID
+        as: 'userDetails', // Get user details
+      },
+    },
+    {
+      $unwind: {
+        path: '$userDetails',
+        preserveNullAndEmptyArrays: true, // Ensure the array is unwound even if null or empty
+      },
+    },
+    {
+      $lookup: {
+        from: 'users', // Lookup in 'User' collection
+        localField: 'customerDetails.user', // Reference user field from customerDetails
+        foreignField: '_id', // Match user by ID
+        as: 'userDetails', // Get user details
+      },
+    },
+    {
+      $unwind: {
+        path: '$userDetails',
+        preserveNullAndEmptyArrays: true, // Ensure the array is unwound even if null or empty
+      },
+    },
+
+    // Project the necessary fields
     {
       $project: {
-        customer: 1,
-        service: '$serviceDetails._id',
+        customer: {
+          name: '$customerDetails.name', // Select customer name
+          location: '$customerDetails.location', // Select customer location
+          address: '$customerDetails.address', // Select customer address
+          image: '$customerDetails.image', // Select customer address
+          phone: {
+            countryCode: '$userDetails.countryCode', // Select user's countryCode
+            number: '$userDetails.phoneNumber', // Select user's phone number
+          },
+        },
+        category: '$categoryDetails.title',
+        service: '$serviceDetails._id', // Service details
         fee: 1,
         date: 1,
         status: 1,
@@ -107,7 +178,7 @@ const getProviderWiseQuotes = async (query: Record<string, any>) => {
     },
     {
       $facet: {
-        total: [{ $count: 'total' }],
+        total: [{ $count: 'total' }], // Count total records
         data: [
           { $skip: skip }, // Pagination skip
           { $limit: limit }, // Pagination limit
@@ -166,9 +237,26 @@ const getAllQuotes = async (query: Record<string, any>) => {
   };
 };
 const getSingleQuotes = async (id: string) => {
-  const result = await Quotes.findById(id).populate('service');
+  const result = await Quotes.findById(id)
+    .populate({
+      path: 'service',
+      populate: {
+        path: 'category', // Populate category inside service
+        select: 'title', // Select title field from category
+      },
+    })
+    .populate({
+      path: 'customer', // Populate customer directly from quotes
+      select: 'name address location', // Select name, address, and location from customer
+      populate: {
+        path: 'user', // Populate user inside customer
+        select: 'countryCode phoneNumber', // Select countryCode and phoneNumber from user
+      },
+    });
+
   return result;
 };
+
 const updateQuotes = async (id: string, payload: Partial<IQuotes>) => {
   const result = await Quotes.findByIdAndUpdate(id, payload, { new: true });
   return result;
@@ -202,6 +290,87 @@ const cancelledQuote = async (id: string) => {
   return result;
 };
 
+const getQuotesStatusSummary = async (query: Record<string, any>) => {
+  const { shop } = query;
+
+  const pipeline: any[] = [
+    {
+      $match: {
+        isDeleted: false, // Ensure we only consider non-deleted quotes
+      },
+    },
+    {
+      $lookup: {
+        from: 'services', // Lookup in 'services' collection
+        let: { serviceId: '$service' }, // Use service field from quotes
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ['$_id', '$$serviceId'], // Match the service by ID
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: 'shops', // Lookup in 'shops' collection
+              let: { shopId: '$shop' }, // Use shop field from services
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $eq: ['$_id', new mongoose.Types.ObjectId(shop)], // Match the shop ID passed in the query
+                    },
+                  },
+                },
+              ],
+              as: 'shopDetails', // Get shop details from the lookup
+            },
+          },
+          { $unwind: '$shopDetails' }, // Unwind the shop details array
+        ],
+        as: 'serviceDetails', // Attach service details to the quote
+      },
+    },
+    { $unwind: '$serviceDetails' }, // Unwind the service details array to access the service fields
+    {
+      $group: {
+        _id: '$status', // Group by the status field
+        count: { $sum: 1 }, // Count the number of quotes for each status
+      },
+    },
+    {
+      $project: {
+        _id: 0, // Do not include the `_id` field
+        status: '$_id', // Rename `_id` to `status`
+        count: 1, // Include the count field
+      },
+    },
+  ];
+
+  const result = await Quotes.aggregate(pipeline);
+
+  // Initialize counts for each status
+  const statusSummary = {
+    totalPending: 0,
+    totalCompleted: 0,
+    totalAccepted: 0,
+  };
+
+  // Map the results to the appropriate fields
+  result.forEach((statusData) => {
+    if (statusData.status === 'pending') {
+      statusSummary.totalPending = statusData.count;
+    } else if (statusData.status === 'completed') {
+      statusSummary.totalCompleted = statusData.count;
+    } else if (statusData.status === 'accepted') {
+      statusSummary.totalAccepted = statusData.count;
+    }
+  });
+
+  return statusSummary;
+};
+
 // accetpcompletation offer
 
 const acceptCompletationRequest = async (id: string) => {
@@ -223,4 +392,5 @@ export const quotesServices = {
   rejectQuote,
   cancelledQuote,
   acceptCompletationRequest,
+  getQuotesStatusSummary,
 };

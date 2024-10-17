@@ -41,7 +41,12 @@ router.patch(
 );
 router.get(
   '/profile',
-  auth(USER_ROLE.sup_admin, USER_ROLE.customer, USER_ROLE.provider),
+  auth(
+    USER_ROLE.sup_admin,
+    USER_ROLE.customer,
+    USER_ROLE.provider,
+    USER_ROLE.employee,
+  ),
   userControllers.getme,
 );
 
@@ -66,11 +71,22 @@ router.patch(
   '/:id',
   auth(USER_ROLE.user),
   parseData(),
+  auth(
+    USER_ROLE.sup_admin,
+    USER_ROLE.customer,
+    USER_ROLE.provider,
+    USER_ROLE.employee,
+  ),
   userControllers.updateProfile,
 );
 router.delete(
   '/',
-  auth(USER_ROLE.vendor, USER_ROLE.user),
+  auth(
+    USER_ROLE.sup_admin,
+    USER_ROLE.customer,
+    USER_ROLE.provider,
+    USER_ROLE.employee,
+  ),
   userControllers.deleteAccount,
 );
 export const userRoutes = router;

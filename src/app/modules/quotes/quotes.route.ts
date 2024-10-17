@@ -20,17 +20,17 @@ router.get(
 );
 router.get(
   '/',
-  auth(USER_ROLE.customer, USER_ROLE.provider),
+  auth(USER_ROLE.customer, USER_ROLE.provider, USER_ROLE.employee),
   quotesController.getAllQuotes,
 );
 router.get(
   '/:id',
-  auth(USER_ROLE.customer, USER_ROLE.provider),
+  auth(USER_ROLE.customer, USER_ROLE.provider, USER_ROLE.employee),
   quotesController.getSingleQuotes,
 );
 router.get(
   '/:id',
-  auth(USER_ROLE.customer, USER_ROLE.provider),
+  auth(USER_ROLE.customer, USER_ROLE.provider, USER_ROLE.employee),
   quotesController.getSingleQuotes,
 );
 router.patch(
@@ -40,23 +40,28 @@ router.patch(
 );
 router.patch(
   '/accept/:id',
-  auth(USER_ROLE.customer, USER_ROLE.provider),
+  auth(USER_ROLE.customer, USER_ROLE.provider, USER_ROLE.employee),
   quotesController.acceptQuote,
 );
 router.patch(
   '/reject/:id',
-  auth(USER_ROLE.customer, USER_ROLE.provider),
+  auth(USER_ROLE.customer, USER_ROLE.provider, USER_ROLE.employee),
   quotesController.rejectQuote,
 );
 router.patch(
   '/cancelled/:id',
-  auth(USER_ROLE.customer, USER_ROLE.provider),
+  auth(USER_ROLE.customer, USER_ROLE.provider, USER_ROLE.employee),
   quotesController.cancelledQuote,
 );
 router.patch(
   '/accept/:id',
-  auth(USER_ROLE.customer, USER_ROLE.provider),
+  auth(USER_ROLE.customer, USER_ROLE.provider, USER_ROLE.employee),
   quotesController.acceptCompletationRequest,
+);
+router.get(
+  '/summery/count',
+  auth(USER_ROLE.customer, USER_ROLE.provider, USER_ROLE.employee),
+  quotesController.getQuotesStatusSummary,
 );
 
 export const quotesRoutes = router;

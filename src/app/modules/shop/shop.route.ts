@@ -19,13 +19,27 @@ router.post(
 );
 router.get(
   '/',
-  auth(USER_ROLE.admin, USER_ROLE.provider, USER_ROLE.customer),
+  auth(
+    USER_ROLE.admin,
+    USER_ROLE.provider,
+    USER_ROLE.customer,
+    USER_ROLE.employee,
+  ),
   shopController.getAllShops,
 );
-router.get('/my-shop', auth(USER_ROLE.provider), shopController.getmyshop);
+router.get(
+  '/my-shop',
+  auth(USER_ROLE.provider, USER_ROLE.employee),
+  shopController.getmyshop,
+);
 router.get(
   '/:id',
-  auth(USER_ROLE.admin, USER_ROLE.provider, USER_ROLE.customer),
+  auth(
+    USER_ROLE.admin,
+    USER_ROLE.provider,
+    USER_ROLE.customer,
+    USER_ROLE.employee,
+  ),
   shopController.getSingleShop,
 );
 router.patch(

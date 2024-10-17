@@ -10,6 +10,7 @@ import { sendEmail } from '../../utils/mailSender';
 import { generateOtp } from '../../utils/otpGenerator';
 
 import Customer from '../customer/customer.model';
+import Employee from '../employee/employee.model';
 import { Provider } from '../provider/provider.model';
 import { Shop } from '../shop/shop.model';
 import { UserRole } from '../user/user.interface';
@@ -44,6 +45,10 @@ const login = async (payload: Tlogin) => {
     case 'provider':
       profile = await Provider.findOne({ user: user?._id });
       shop = await Shop.findOne({ provider: profile?._id }).select('_id');
+      break;
+    case 'employee':
+      profile = await Employee.findOne({ user: user?._id });
+      shop = { _id: profile?.shop };
       break;
 
     default:

@@ -44,8 +44,7 @@ const getSingleShop = async (id: string) => {
 };
 // get my shop
 const getmyshop = async (id: string) => {
-  const result = await Shop.findOne({ provider: id });
-
+  const result = await Shop.findById(id);
   return result;
 };
 

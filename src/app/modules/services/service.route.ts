@@ -19,7 +19,7 @@ router.post(
 );
 router.get(
   '/my-services',
-  auth(USER_ROLE.provider),
+  auth(USER_ROLE.provider, USER_ROLE.employee),
   ServiceController.getMyServices,
 );
 router.get('/', ServiceController.getAllServices);
@@ -30,7 +30,7 @@ router.patch(
   upload.fields([{ name: 'files', maxCount: 5 }]),
   parseData(),
   validateRequest(serviceValidation.UpdateserviceSchema),
-  auth(USER_ROLE.provider),
+  auth(USER_ROLE.provider, USER_ROLE.employee),
   ServiceController.InserServiceIntodb,
 );
 

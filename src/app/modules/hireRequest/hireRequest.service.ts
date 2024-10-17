@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import QueryBuilder from '../../builder/QueryBuilder';
 import calculatePagination from '../../shared/paginationHelper';
@@ -12,7 +13,14 @@ const insertHireRequestIntoDb = async (payload: IhireRequest) => {
 
 //  get all my hire request
 const getAllMyHireRequest = async (query: Record<string, any>) => {
-  const { searchTerm, profileId, ...others } = query;
+  const {
+    searchTerm,
+    profileId,
+    page: pages,
+    limit: limits,
+    size: sizes,
+    ...others
+  } = query;
   const andCondition: any[] = [];
 
   // Add searchTerm condition
@@ -132,6 +140,7 @@ const getAllMyHireRequest = async (query: Record<string, any>) => {
     {
       $unwind: '$customerDetails', // Unwind to get single customer object
     },
+
     {
       $project: {
         customerName: '$customerDetails.name',
@@ -213,10 +222,24 @@ const getAllHireRequests = async (query: Record<string, any>) => {
 };
 
 const getSingleHireReuqest = async (id: string) => {
-  const result = await HireRequest.findById(id);
+  const result = await HireRequest.findById(id)
+    .populate({
+      path: 'customer',
+      select: 'name address location image',
+      populate: {
+        path: 'user',
+        select: 'countryCode phoneNumber',
+      },
+    })
+    .populate({
+      path: 'service',
+      populate: {
+        path: 'category',
+        select: 'title',
+      },
+    });
   return result;
 };
-
 const updateHireRequest = async (
   id: string,
   payload: Partial<IhireRequest>,

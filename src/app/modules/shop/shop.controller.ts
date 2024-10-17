@@ -37,7 +37,7 @@ const getSingleShop = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const getmyshop = catchAsync(async (req: Request, res: Response) => {
-  const result = await shopservices.getmyshop(req.user.profileId);
+  const result = await shopservices.getmyshop(req.user.shop);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

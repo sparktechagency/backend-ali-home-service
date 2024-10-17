@@ -18,22 +18,37 @@ router.post(
 );
 router.get(
   '/provider',
-  auth(USER_ROLE.provider),
+  auth(USER_ROLE.provider, USER_ROLE.employee),
   hireRequestController.getAllMyHireRequest,
 );
 router.get(
   '/',
-  auth(USER_ROLE.provider, USER_ROLE.customer, USER_ROLE.sup_admin),
+  auth(
+    USER_ROLE.provider,
+    USER_ROLE.customer,
+    USER_ROLE.sup_admin,
+    USER_ROLE.employee,
+  ),
   hireRequestController.getAllHireRequests,
 );
 router.get(
   '/:id',
-  auth(USER_ROLE.provider, USER_ROLE.customer, USER_ROLE.sup_admin),
+  auth(
+    USER_ROLE.provider,
+    USER_ROLE.customer,
+    USER_ROLE.sup_admin,
+    USER_ROLE.employee,
+  ),
   hireRequestController.getSingleHireRequest,
 );
 router.patch(
   '/:id',
-  auth(USER_ROLE.provider, USER_ROLE.customer, USER_ROLE.sup_admin),
+  auth(
+    USER_ROLE.provider,
+    USER_ROLE.customer,
+    USER_ROLE.sup_admin,
+    USER_ROLE.employee,
+  ),
   hireRequestController.updateHireRequest,
 );
 
