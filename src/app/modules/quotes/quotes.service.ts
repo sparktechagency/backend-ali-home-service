@@ -338,10 +338,10 @@ const acceptQuote = async (id: string) => {
   return result;
 };
 // reject quote
-const rejectQuote = async (id: string) => {
+const rejectQuote = async (id: string, body: any) => {
   const result = await Quotes.findByIdAndUpdate(
     id,
-    { $set: { status: 'rejected' } },
+    { $set: { status: 'rejected', rejectionReason: body.rejectionReason } },
     { new: true },
   );
   return result;

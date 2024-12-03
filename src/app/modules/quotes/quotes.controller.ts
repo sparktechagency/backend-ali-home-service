@@ -64,7 +64,7 @@ const acceptQuote = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const rejectQuote = catchAsync(async (req: Request, res: Response) => {
-  const result = await quotesServices.rejectQuote(req.params.id);
+  const result = await quotesServices.rejectQuote(req.params.id, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -73,7 +73,7 @@ const rejectQuote = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const cancelledQuote = catchAsync(async (req: Request, res: Response) => {
-  const result = await quotesServices.rejectQuote(req.params.id);
+  const result = await quotesServices.rejectQuote(req.params.id, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
