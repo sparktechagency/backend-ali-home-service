@@ -1,8 +1,8 @@
 import { TNotification } from './notification.inerface';
 import Notification from './notification.model';
 
-const getNotificationFromDb = async (userId: string) => {
-  const result = await Notification.find({ receiver: userId });
+const getNotificationFromDb = async (query: Record<string, any>) => {
+  const result = await Notification.find(query);
   return result;
 };
 

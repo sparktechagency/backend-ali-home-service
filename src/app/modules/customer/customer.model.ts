@@ -36,11 +36,14 @@ const CustomerSchema = new Schema<Icustomer>(
     },
     dateOfBirth: {
       type: String,
-      required: true,
     },
     gender: {
       type: String,
       enum: ['Male', 'Female', 'others'],
+    },
+    fcmToken: {
+      type: String,
+      default: '',
     },
     location: {
       coordiantes: [Number],

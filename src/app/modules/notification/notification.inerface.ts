@@ -15,5 +15,5 @@ export type TNotification = {
 export interface IsendNotification {
   title: string;
   body: string;
-  data?: { [key: string]: string };
+  data?: { [key: string]: any };
 }

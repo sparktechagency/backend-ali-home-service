@@ -19,5 +19,6 @@ export interface IServiceProvider {
   helpLineNumber: string;
   image: Iimage;
   gender: gender;
+  fcmToken: string;
   isDeleted: boolean;
 }

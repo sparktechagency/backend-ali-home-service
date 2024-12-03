@@ -32,7 +32,8 @@ const getAllQuotes = catchAsync(async (req: Request, res: Response) => {
     statusCode: httpStatus.OK,
     success: true,
     message: 'Quotes retrieved successfully',
-    data: result,
+    data: result?.data,
+    meta: result?.meta,
   });
 });
 const getSingleQuotes = catchAsync(async (req: Request, res: Response) => {

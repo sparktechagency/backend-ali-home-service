@@ -6,6 +6,7 @@ export interface IhireRequest {
   service: ObjectId;
   address: string;
   description: string;
+  provider: string;
   images: Iimage[];
   status: 'pending' | 'accepted' | 'rejected';
   priority: 'yes' | 'no';

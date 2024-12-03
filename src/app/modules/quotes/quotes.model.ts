@@ -17,6 +17,12 @@ const QuotesSchema = new Schema<IQuotes>(
       ref: 'Customer',
       required: true,
     },
+    employee: {
+      type: Schema.Types.ObjectId,
+      ref: 'Employee',
+      required: true,
+    },
+
     fee: {
       type: Number,
       required: true,

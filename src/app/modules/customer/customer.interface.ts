@@ -27,5 +27,6 @@ export interface Icustomer {
   image: string;
   isDeleted: boolean;
   dateOfBirth: string;
+  fcmToken: string;
   gender: gender;
 }

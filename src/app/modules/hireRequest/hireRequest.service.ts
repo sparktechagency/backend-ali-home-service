@@ -2,12 +2,31 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import QueryBuilder from '../../builder/QueryBuilder';
 import calculatePagination from '../../shared/paginationHelper';
+import Customer from '../customer/customer.model';
+import { sendNotification } from '../notification/notification.utils';
+import { Provider } from '../provider/provider.model';
 import { hireRequestFilterableFields } from './hireRequest.constant';
 import { IhireRequest } from './hireRequest.interface';
 import HireRequest from './hireRequest.model';
 
 const insertHireRequestIntoDb = async (payload: IhireRequest) => {
+  const findFcmToken = await Provider.findById(payload?.provider).select(
+    'fcmToken',
+  );
+  const findCustomer = await Customer.findById(payload?.customer).select(
+    'fcmToken',
+  );
+  console.log(findCustomer);
   const result = await HireRequest.create(payload);
+  const message = {
+    title: 'New hire request',
+    body: 'A customer sent a hire request. please check the dashboard',
+    data: {
+      receiver: payload?.provider,
+      type: 'hireRequest',
+    },
+  };
+  await sendNotification([findCustomer?.fcmToken as string], message);
   return result;
 };
 

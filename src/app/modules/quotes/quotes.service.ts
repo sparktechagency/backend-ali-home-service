@@ -147,8 +147,30 @@ const getProviderWiseQuotes = async (query: Record<string, any>) => {
       },
     },
     {
+      $lookup: {
+        from: 'employees', // Lookup in 'User' collection
+        localField: 'employee', // Reference user field from customerDetails
+        foreignField: '_id', // Match user by ID
+        as: 'employeeDetails', // Get user details
+      },
+    },
+    {
       $unwind: {
-        path: '$userDetails',
+        path: '$employeeDetails',
+        preserveNullAndEmptyArrays: true, // Ensure the array is unwound even if null or empty
+      },
+    },
+    {
+      $lookup: {
+        from: 'users', // Lookup in 'User' collection
+        localField: 'employeeDetails.user', // Reference user field from customerDetails
+        foreignField: '_id', // Match user by ID
+        as: 'employeeUser', // Get user details
+      },
+    },
+    {
+      $unwind: {
+        path: '$employeeUser',
         preserveNullAndEmptyArrays: true, // Ensure the array is unwound even if null or empty
       },
     },
@@ -157,17 +179,50 @@ const getProviderWiseQuotes = async (query: Record<string, any>) => {
     {
       $project: {
         customer: {
-          name: '$customerDetails.name', // Select customer name
-          location: '$customerDetails.location', // Select customer location
-          address: '$customerDetails.address', // Select customer address
-          image: '$customerDetails.image', // Select customer address
+          name: '$customerDetails.name',
+          location: '$customerDetails.location',
+          address: '$customerDetails.address',
+          image: '$customerDetails.image',
           phone: {
-            countryCode: '$userDetails.countryCode', // Select user's countryCode
-            number: '$userDetails.phoneNumber', // Select user's phone number
+            countryCode: {
+              $cond: {
+                if: { $isArray: '$userDetails.countryCode' },
+                then: { $arrayElemAt: ['$userDetails.countryCode', 0] },
+                else: '$userDetails.countryCode', // Use it directly if it's not an array
+              },
+            },
+            number: {
+              $cond: {
+                if: { $isArray: '$userDetails.phoneNumber' },
+                then: { $arrayElemAt: ['$userDetails.phoneNumber', 0] },
+                else: '$userDetails.phoneNumber', // Use it directly if it's not an array
+              },
+            },
           },
         },
+        employee: {
+          name: '$employeeDetails.name',
+          phone: {
+            countryCode: {
+              $cond: {
+                if: { $isArray: '$employeeUser.countryCode' },
+                then: { $arrayElemAt: ['$employeeUser.countryCode', 0] },
+                else: '$employeeUser.countryCode', // Use it directly if it's not an array
+              },
+            },
+            number: {
+              $cond: {
+                if: { $isArray: '$employeeUser.phoneNumber' },
+                then: { $arrayElemAt: ['$employeeUser.phoneNumber', 0] },
+                else: '$employeeUser.phoneNumber', // Use it directly if it's not an array
+              },
+            },
+          },
+          image: '$employeeDetails.image',
+        },
         category: '$categoryDetails.title',
-        service: '$serviceDetails._id', // Service details
+        image: '$categoryDetails.image.url',
+        service: '$serviceDetails._id',
         fee: 1,
         date: 1,
         status: 1,
@@ -176,6 +231,7 @@ const getProviderWiseQuotes = async (query: Record<string, any>) => {
         updatedAt: 1,
       },
     },
+
     {
       $facet: {
         total: [{ $count: 'total' }], // Count total records
@@ -207,19 +263,28 @@ const getProviderWiseQuotes = async (query: Record<string, any>) => {
 
 const getAllQuotes = async (query: Record<string, any>) => {
   const QuoteModel = new QueryBuilder(
-    Quotes.find().populate({
-      path: 'service', // Populate the service field
-      populate: [
-        {
-          path: 'shop',
-          select: 'name address',
+    Quotes.find()
+      .populate({
+        path: 'service', // Populate the service field
+        populate: [
+          {
+            path: 'shop',
+            select: 'name address',
+          },
+          {
+            path: 'category',
+            select: 'title',
+          },
+        ],
+      })
+      .populate({
+        path: 'employee', // Populate the employee field
+        select: 'name image', // Select only the name and image fields
+        populate: {
+          path: 'user', // Nested populate for user field in employee
+          select: 'countryCode phoneNumber', // Select countryCode and phoneNumber from user
         },
-        {
-          path: 'category',
-          select: 'title',
-        },
-      ],
-    }),
+      }),
     query,
   )
     .search([])
@@ -236,6 +301,7 @@ const getAllQuotes = async (query: Record<string, any>) => {
     meta,
   };
 };
+
 const getSingleQuotes = async (id: string) => {
   const result = await Quotes.findById(id)
     .populate({

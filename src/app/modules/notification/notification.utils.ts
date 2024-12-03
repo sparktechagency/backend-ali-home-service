@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import admin from 'firebase-admin';
 import httpStatus from 'http-status';
-import AppError from '../error/AppError';
+import AppError from '../../error/AppError';
 import { IsendNotification } from './notification.inerface';
 import Notification from './notification.model';
+
+// import firebase from "../../../public/"
 admin.initializeApp({
-  credential: admin.credential.cert(
-    '../../../../public/apurbo-fe31d-firebase-adminsdk-7ghcm-043fab9265.json',
-  ),
+  credential: admin.credential.cert('./firebase.json'),
   // credential: admin.credential.cert(clinicaSericeAccountFile),
 });
 
@@ -15,6 +15,7 @@ export const sendNotification = async (
   fcmToken: string[],
   payload: IsendNotification,
 ): Promise<unknown> => {
+  console.log('token', fcmToken);
   try {
     const response = await admin.messaging().sendEachForMulticast({
       tokens: fcmToken,
@@ -34,13 +35,13 @@ export const sendNotification = async (
         },
       },
     });
-
-    if (response.successCount) {
+    console.log('response', response);
+    if (response?.successCount > 0) {
+      console.log('response', response);
       fcmToken?.map(async (token) => {
         await Notification.create({
+          receiver: payload?.data?.receiver,
           title: payload.title,
-          fcmToken: token,
-          link: payload?.data?.link,
           message: payload?.body,
           date: new Date(),
           time: new Date().getTime,

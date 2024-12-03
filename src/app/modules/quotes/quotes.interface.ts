@@ -7,6 +7,7 @@ export interface IQuotes {
   customer: ObjectId;
   fee: number;
   date: string;
+  employee: ObjectId;
   isPaid: boolean;
   paymentGateway: 'cash' | 'online';
   isProviderAccept?: boolean;

@@ -8,6 +8,7 @@ export type Tlogin = {
   countryCode?: string;
   phoneNumber?: string;
   password: string;
+  fcmToken: string;
 };
 export type TchangePassword = {
   oldPassword: string;

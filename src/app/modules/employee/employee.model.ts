@@ -34,6 +34,10 @@ const employeeSchema = new Schema<IEmployee>(
       type: String,
       required: true,
     },
+    fcmToken: {
+      type: String,
+      default: ' ',
+    },
     isDeleted: {
       type: Boolean,
       default: false,

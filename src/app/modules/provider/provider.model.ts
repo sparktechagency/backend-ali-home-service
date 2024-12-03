@@ -24,6 +24,10 @@ const ProviderSchema = new Schema<IServiceProvider>({
     enum: ['Male', 'Female', 'others'],
   },
   countryCode: { type: String, required: true },
+  fcmToken: {
+    type: String,
+    default: ' ',
+  },
   helpLineNumber: { type: String },
   image: { type: ImageSchema, required: true },
   isDeleted: { type: Boolean, default: false },

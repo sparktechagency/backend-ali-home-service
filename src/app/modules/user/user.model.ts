@@ -14,6 +14,7 @@ const VerificationSchema = new Schema({
     type: Date,
     required: true,
   },
+
   status: {
     type: Boolean,
     required: true,
@@ -35,6 +36,7 @@ const UserSchema = new Schema<TUser, UserModel>(
       type: String,
       required: true,
     },
+
     phoneNumber: {
       type: String,
       required: true,
@@ -67,9 +69,6 @@ const UserSchema = new Schema<TUser, UserModel>(
     verification: {
       type: VerificationSchema,
       required: true,
-    },
-    fcmToken: {
-      type: String,
     },
   },
   {

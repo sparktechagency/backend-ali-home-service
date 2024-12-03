@@ -13,6 +13,7 @@ export interface IEmployee {
   phoneNumber: string;
   password: string;
   department: string;
+  fcmToken: string;
   isDeleted: boolean;
   image: Iimage;
 }

@@ -41,14 +41,26 @@ const login = async (payload: Tlogin) => {
   switch (user?.role) {
     case UserRole.customer:
       profile = await Customer.findOne({ user: user?._id });
+      await Customer.updateOne(
+        { _id: profile?._id },
+        { fcmToken: payload?.fcmToken },
+      );
       break;
     case 'provider':
       profile = await Provider.findOne({ user: user?._id });
       shop = await Shop.findOne({ provider: profile?._id }).select('_id');
+      await Provider.updateOne(
+        { _id: profile?._id },
+        { fcmToken: payload?.fcmToken },
+      );
       break;
     case 'employee':
       profile = await Employee.findOne({ user: user?._id });
       shop = { _id: profile?.shop };
+      await Employee.updateOne(
+        { _id: profile?._id },
+        { fcmToken: payload?.fcmToken },
+      );
       break;
 
     default:
@@ -57,6 +69,7 @@ const login = async (payload: Tlogin) => {
   if (!(await User.isPasswordMatched(payload.password, user.password))) {
     throw new AppError(httpStatus.BAD_REQUEST, 'password do not match');
   }
+
   const jwtPayload = {
     userId: user?._id,
     profileId: profile?._id,

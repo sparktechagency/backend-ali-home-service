@@ -7,7 +7,8 @@ import { coinRoutes } from '../modules/coins/coins.route';
 import { contentRoues } from '../modules/content/content.route';
 import { employeeRoutes } from '../modules/employee/employee.route';
 import { hireRequestRoutes } from '../modules/hireRequest/hireRequest.route';
-import { notificationRoutes } from '../modules/notification/notificaiton.route';
+
+import notificationRoutes from '../modules/notification/notification.route';
 import { paymentRoutes } from '../modules/payment/payment.route';
 import { quotesRoutes } from '../modules/quotes/quotes.route';
 import { reviewRoutes } from '../modules/review/review.route';
