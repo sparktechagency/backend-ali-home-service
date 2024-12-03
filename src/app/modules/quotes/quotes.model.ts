@@ -10,7 +10,7 @@ const QuotesSchema = new Schema<IQuotes>(
     },
     request: {
       type: Schema.Types.ObjectId,
-      ref: 'Request',
+      ref: 'HireRequest',
     },
     customer: {
       type: Schema.Types.ObjectId,

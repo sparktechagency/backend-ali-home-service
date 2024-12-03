@@ -265,11 +265,15 @@ const getAllQuotes = async (query: Record<string, any>) => {
   const QuoteModel = new QueryBuilder(
     Quotes.find()
       .populate({
+        path: 'request', // Populate the service field
+        select: 'description images priority rejectionReason',
+      })
+      .populate({
         path: 'service', // Populate the service field
         populate: [
           {
             path: 'shop',
-            select: 'name address',
+            select: 'name address helpLineNumber',
           },
           {
             path: 'category',
@@ -277,6 +281,7 @@ const getAllQuotes = async (query: Record<string, any>) => {
           },
         ],
       })
+
       .populate({
         path: 'employee', // Populate the employee field
         select: 'name image', // Select only the name and image fields
