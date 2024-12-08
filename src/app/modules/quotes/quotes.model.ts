@@ -51,6 +51,7 @@ const QuotesSchema = new Schema<IQuotes>(
     },
     rejectionReason: {
       type: String,
+      default: '',
     },
     isDeleted: {
       type: Boolean,

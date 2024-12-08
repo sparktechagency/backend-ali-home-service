@@ -9,7 +9,8 @@ const nameSchema = new Schema<name>({
   },
   lastName: {
     type: String,
-    required: true,
+    // required: true,
+    default: '',
   },
 });
 const imageSchema = new Schema<Iimage>({
@@ -28,7 +29,7 @@ const CustomerSchema = new Schema<Icustomer>(
     name: nameSchema,
     address: {
       type: String,
-      required: true,
+      // required: true,
     },
     user: {
       type: Schema.Types.ObjectId,

@@ -13,6 +13,12 @@ router.post(
   userControllers.insertCustomerIntoDb,
 );
 router.post(
+  '/google/create-customers',
+  // upload.single('file'),
+  // parseData(),
+  userControllers.SignupWithGoogleForCustomer,
+);
+router.post(
   '/create-provider',
   upload.single('file'),
   parseData(),
@@ -38,6 +44,12 @@ router.patch(
   upload.single('file'),
   parseData(),
   userControllers.updateUser,
+);
+router.patch(
+  '/phone/update',
+  auth(USER_ROLE.provider, USER_ROLE.customer, USER_ROLE.employee),
+
+  userControllers.updatePhoneNumber,
 );
 router.get(
   '/profile',

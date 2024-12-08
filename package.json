@@ -54,7 +54,7 @@
     "prettier": "^3.3.3",
     "save-dev": "^0.0.1-security",
     "socket.io": "^4.7.5",
-    "stripe": "^17.2.0",
+    "stripe": "^17.4.0",
     "zod": "^3.22.4"
   }
 }

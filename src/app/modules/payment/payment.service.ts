@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from 'http-status';
-import mongoose from 'mongoose';
+import mongoose, { startSession } from 'mongoose';
 import Stripe from 'stripe';
 import config from '../../config';
 import AppError from '../../error/AppError';
@@ -8,7 +8,7 @@ import { Quotes } from '../quotes/quotes.model';
 import Service from '../services/service.model';
 import { Ipayment } from './payment.interface';
 import { Payment } from './payment.model';
-import { calculateAmount } from './payment.utils';
+import { calculateAmount, createCheckoutSession } from './payment.utils';
 const stripe = new Stripe(config.stripe_secret as string);
 const createPaymentIntent = async (payload: any) => {
   const { amount } = payload;
@@ -64,7 +64,189 @@ const insertPaymentIntoDb = async (payload: Ipayment) => {
   }
 };
 
+const checkout = async (payload: any) => {
+  const result = await createCheckoutSession(payload);
+  return result;
+};
+
+const confirmPayment = async (query: Record<string, any>) => {
+  const { sessionId, quote } = query;
+  const session = await startSession();
+  const PaymentSession = await stripe.checkout.sessions.retrieve(sessionId);
+  console.log(PaymentSession?.status);
+  const paymentIntentId = PaymentSession.payment_intent as string;
+
+  try {
+    session.startTransaction();
+
+    if (PaymentSession?.status === 'complete') {
+      // Update payment status to "paid" in MongoDB
+      console.log('being hitted');
+      const result = await Payment.create(
+        [
+          {
+            quote,
+            gateway: 'online',
+            transactionId: PaymentSession?.id,
+            amount: PaymentSession?.amount_total,
+          },
+        ],
+        { session },
+      );
+      console.log(result);
+      if (!result[0]) {
+        throw new AppError(httpStatus.BAD_REQUEST, 'Something went wrong');
+      }
+      // Update booking route status to "paid"
+      const updateQuote = await Quotes.findByIdAndUpdate(
+        quote,
+        { isPaid: true },
+        { session },
+      );
+      if (!updateQuote) {
+        throw new AppError(httpStatus.BAD_REQUEST, 'Something went wrong');
+      }
+
+      await session.commitTransaction();
+      await session.endSession();
+      return result;
+    }
+  } catch (error: any) {
+    console.log(error);
+    if (paymentIntentId) {
+      await stripe.refunds.create({
+        payment_intent: paymentIntentId,
+      });
+    }
+    await session.abortTransaction();
+    await session.endSession();
+  }
+};
+
+//get  total income monthly income etc.
+
+const getPaymentsByProvider = async (query: Record<string, any>) => {
+  const { shop, page: pageQuery, limit: limitQuery, ...filters } = query;
+
+  const page = parseInt(pageQuery, 10) || 1;
+  const limit = parseInt(limitQuery, 10) || 10;
+  const skip = (page - 1) * limit;
+
+  const now = new Date();
+  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  const pipeline = [
+    {
+      $match: {
+        isDeleted: false,
+        ...filters,
+      },
+    },
+    {
+      $lookup: {
+        from: 'quotes',
+        localField: 'quote',
+        foreignField: '_id',
+        as: 'quoteDetails',
+        pipeline: [
+          {
+            $lookup: {
+              from: 'services',
+              localField: 'service',
+              foreignField: '_id',
+              as: 'serviceDetails',
+              pipeline: [
+                {
+                  $match: {
+                    shop: new mongoose.Types.ObjectId(shop),
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $unwind: {
+              path: '$serviceDetails',
+              preserveNullAndEmptyArrays: false,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: {
+        path: '$quoteDetails',
+        preserveNullAndEmptyArrays: false,
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        amount: 1,
+        gateway: 1,
+        transactionId: 1,
+        createdAt: 1,
+      },
+    },
+    {
+      $facet: {
+        paginatedData: [{ $skip: skip }, { $limit: limit }],
+        total: [{ $count: 'total' }],
+        currentMonthIncome: [
+          {
+            $match: {
+              createdAt: { $gte: firstDayOfMonth, $lte: lastDayOfMonth },
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: '$amount' },
+            },
+          },
+        ],
+        overallIncome: [
+          {
+            $group: {
+              _id: null,
+              total: { $sum: '$amount' },
+            },
+          },
+        ],
+      },
+    },
+  ];
+
+  const result = await Payment.aggregate(pipeline);
+
+  const total = result?.[0]?.total?.[0]?.total || 0;
+  const data = result?.[0]?.paginatedData || [];
+  const currentMonthTotalIncome =
+    result?.[0]?.currentMonthIncome?.[0]?.total || 0;
+  const overallTotalIncome = result?.[0]?.overallIncome?.[0]?.total || 0;
+
+  return {
+    data: {
+      overview: {
+        totalIncome: overallTotalIncome,
+        currentMonthIncome: currentMonthTotalIncome,
+      },
+      transactions: data,
+    },
+    meta: {
+      total,
+      page,
+      limit,
+      totalPage: Math.ceil(total / limit),
+    },
+  };
+};
+
 export const paymentServices = {
   insertPaymentIntoDb,
   createPaymentIntent,
+  checkout,
+  confirmPayment,
+  getPaymentsByProvider,
 };

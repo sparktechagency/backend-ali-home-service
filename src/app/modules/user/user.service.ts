@@ -4,6 +4,8 @@ import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import AppError from '../../error/AppError';
 
+import config from '../../config';
+import { createToken } from '../auth/auth.utils';
 import { Icustomer } from '../customer/customer.interface';
 import Customer from '../customer/customer.model';
 import { IEmployee } from '../employee/employee.interface';
@@ -17,10 +19,7 @@ const insertCustomerIntoDb = async (
   payload: Icustomer & TUser,
 ): Promise<Icustomer | null> => {
   // check if same number exist
-  const isExistUser = await User.isUserExistByNumber(
-    payload?.countryCode,
-    payload?.phoneNumber,
-  );
+  const isExistUser = await User.findOne({ email: payload?.email });
   if (isExistUser) {
     throw new AppError(
       httpStatus.CONFLICT,
@@ -36,6 +35,7 @@ const insertCustomerIntoDb = async (
   };
   try {
     session.startTransaction();
+
     const insertUser = await User.create([{ ...payload, verification: otp }], {
       session,
     });
@@ -61,6 +61,136 @@ const insertCustomerIntoDb = async (
     throw new Error(error as any);
   }
 };
+
+// login with google customer
+
+const SignupWithGoogleForCustomer = async (payload: Icustomer & TUser) => {
+  const { email } = payload;
+  const user: any = await User.findOne({ email });
+  let needPhoneNumber = false;
+  let profile: any = {};
+  console.log('payload', user);
+  // if account is found
+  if (user) {
+    if (!user?.isActive) {
+      throw new AppError(httpStatus.FORBIDDEN, 'This user is blocked !');
+    }
+    if (user?.isDeleted) {
+      throw new AppError(httpStatus.FORBIDDEN, 'This user is deleted !');
+    }
+    if (!user?.isVerified) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'User is not verified !');
+    }
+
+    profile = await Customer.findOne({ user: user?._id });
+    await Customer.updateOne(
+      { _id: profile?._id },
+      { fcmToken: payload?.fcmToken },
+    );
+
+    // Generate tokens
+    const jwtPayload = {
+      userId: user?._id,
+      profileId: profile?._id,
+      role: user.role,
+    };
+    const accessToken = createToken(
+      jwtPayload,
+      config.jwt_access_secret as string,
+      config.jwt_access_expires_in as string,
+    );
+
+    const refreshToken = createToken(
+      jwtPayload,
+      config.jwt_refresh_secret as string,
+      config.jwt_refresh_expires_in as string,
+    );
+
+    if (!user?.phoneNumber) {
+      needPhoneNumber = true;
+    }
+
+    return {
+      user: {},
+      accessToken,
+      refreshToken,
+      needPhoneNumber,
+    };
+  }
+
+  // if account is not found
+  const session = await mongoose.startSession();
+
+  const otp = {
+    otp: 123456,
+    expiresAt: '2024-09-11T08:30:00.000Z',
+    status: true,
+  };
+
+  try {
+    session.startTransaction();
+
+    // Create user
+    const data = {
+      ...payload,
+      phoneNumber: '',
+      couontryCode: '',
+      verification: otp,
+    };
+    const insertUser = await User.create([data], {
+      session,
+    });
+
+    if (!insertUser[0]) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'User not created');
+    }
+
+    // Create customer profile
+    const result = await Customer.create(
+      [
+        {
+          ...payload,
+          user: insertUser[0]?._id,
+        },
+      ],
+      { session },
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+
+    // Generate tokens
+    const jwtPayload: any = {
+      userId: insertUser[0]?._id,
+      profileId: result[0]?._id,
+      role: insertUser[0]?.role,
+    };
+
+    const accessToken = createToken(
+      jwtPayload,
+      config.jwt_access_secret as string,
+      config.jwt_access_expires_in as string,
+    );
+
+    const refreshToken = createToken(
+      jwtPayload,
+      config.jwt_refresh_secret as string,
+      config.jwt_refresh_expires_in as string,
+    );
+
+    return {
+      user: {},
+      accessToken,
+      refreshToken,
+      needPhoneNumber: !insertUser[0]?.phoneNumber,
+    };
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw new Error(error as any);
+  }
+};
+
 // provider
 const insertProviderIntoDb = async (
   payload: IServiceProvider & TUser,
@@ -242,12 +372,19 @@ const deleteAccount = async (id: string, password: string) => {
   return result;
 };
 
+const updatePhoneNumber = async (id: string, payload: any) => {
+  const result = await User.findByIdAndUpdate(id, payload);
+  return result;
+};
+
 export const userServices = {
   insertEmployeeIntoDb,
   insertCustomerIntoDb,
+  SignupWithGoogleForCustomer,
   insertProviderIntoDb,
   getme,
   updateProfile,
   getSingleUser,
   deleteAccount,
+  updatePhoneNumber,
 };

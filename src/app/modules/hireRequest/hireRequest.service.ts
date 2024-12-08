@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import QueryBuilder from '../../builder/QueryBuilder';
 import calculatePagination from '../../shared/paginationHelper';
-import Customer from '../customer/customer.model';
 import { sendNotification } from '../notification/notification.utils';
 import { Provider } from '../provider/provider.model';
 import { hireRequestFilterableFields } from './hireRequest.constant';
@@ -13,10 +12,11 @@ const insertHireRequestIntoDb = async (payload: IhireRequest) => {
   const findFcmToken = await Provider.findById(payload?.provider).select(
     'fcmToken',
   );
-  const findCustomer = await Customer.findById(payload?.customer).select(
-    'fcmToken',
-  );
-  console.log(findCustomer);
+  console.log(payload);
+
+  // const findCustomer = await Customer.findById(payload?.customer).select(
+  //   'fcmToken',
+  // );
   const result = await HireRequest.create(payload);
   const message = {
     title: 'New hire request',
@@ -26,7 +26,7 @@ const insertHireRequestIntoDb = async (payload: IhireRequest) => {
       type: 'hireRequest',
     },
   };
-  await sendNotification([findCustomer?.fcmToken as string], message);
+  await sendNotification([findFcmToken?.fcmToken as string], message);
   return result;
 };
 

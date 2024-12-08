@@ -23,6 +23,22 @@ const insertCustomerIntoDb = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+// create customer with google
+const SignupWithGoogleForCustomer = catchAsync(
+  async (req: Request, res: Response) => {
+    console.log(req.body);
+    const result = await userServices.SignupWithGoogleForCustomer({
+      ...req.body,
+      role: USER_ROLE.customer,
+    });
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'User created successfully',
+      data: result,
+    });
+  },
+);
 // create provider
 const insertProviderintoDb = catchAsync(async (req: Request, res: Response) => {
   let image;
@@ -72,6 +88,18 @@ const getme = catchAsync(async (req: Request, res: Response) => {
     statusCode: 200,
     success: true,
     message: 'user retrived successfully',
+    data: result,
+  });
+});
+const updatePhoneNumber = catchAsync(async (req: Request, res: Response) => {
+  const result = await userServices.updatePhoneNumber(
+    req.user.userId,
+    req.body,
+  );
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'user updated successfully',
     data: result,
   });
 });
@@ -143,10 +171,12 @@ export const userControllers = {
   insertCustomerIntoDb,
   insertProviderintoDb,
   insertEmployeeIntoDb,
+  SignupWithGoogleForCustomer,
   getme,
   updateProfile,
   getAllUsers,
   getsingleUser,
   updateUser,
   deleteAccount,
+  updatePhoneNumber,
 };

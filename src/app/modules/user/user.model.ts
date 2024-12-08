@@ -30,17 +30,20 @@ const UserSchema = new Schema<TUser, UserModel>(
     },
     password: {
       type: String,
-      required: true,
+      // required: true,
+      default: '',
     },
     countryCode: {
       type: String,
-      required: true,
+      // required: true,
+      default: '',
     },
 
     phoneNumber: {
       type: String,
-      required: true,
-      unique: true,
+      // required: true,
+      // unique: true,
+      default: '',
     },
     needsPasswordChange: {
       type: Boolean,
@@ -49,6 +52,11 @@ const UserSchema = new Schema<TUser, UserModel>(
     passwordChangedAt: {
       type: Date,
     },
+    accountType: {
+      type: String,
+      enum: ['custom', 'google'],
+      default: 'custom',
+    },
     role: {
       type: String,
       enum: Object.values(UserRole),
@@ -56,11 +64,11 @@ const UserSchema = new Schema<TUser, UserModel>(
     },
     isActive: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     isVerified: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     isDeleted: {
       type: Boolean,

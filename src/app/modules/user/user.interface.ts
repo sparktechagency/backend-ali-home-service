@@ -31,6 +31,7 @@ export interface TUser {
   isActive: boolean;
   isDeleted: boolean;
   verification: Verification;
+  accountType?: 'custom' | 'google';
   countryCode: string;
   fcmToken?: string;
 }

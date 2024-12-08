@@ -3,39 +3,39 @@ import { Ipayment } from './payment.interface';
 
 const paymentSchema = new Schema<Ipayment>(
   {
-    customer: {
-      type: Schema.Types.ObjectId,
-      ref: 'Customer',
-      required: true,
-    },
-    service: {
-      type: Schema.Types.ObjectId,
-      ref: 'Service',
-      required: true,
-    },
+    // customer: {
+    //   type: Schema.Types.ObjectId,
+    //   ref: 'Customer',
+    //   required: true,
+    // },
+    // service: {
+    //   type: Schema.Types.ObjectId,
+    //   ref: 'Service',
+    //   required: true,
+    // },
     quote: {
       type: Schema.Types.ObjectId,
       ref: 'Quote',
       required: true,
     },
-    shop: {
-      type: Schema.Types.ObjectId,
-      ref: 'Shop',
-      required: true,
-    },
-    provider: {
-      type: Schema.Types.ObjectId,
-      ref: 'Provider',
-      required: true,
-    },
+    // shop: {
+    //   type: Schema.Types.ObjectId,
+    //   ref: 'Shop',
+    //   required: true,
+    // },
+    // provider: {
+    //   type: Schema.Types.ObjectId,
+    //   ref: 'Provider',
+    //   required: true,
+    // },
     amount: {
       type: Number,
       required: true,
     },
-    time: {
-      type: String,
-      required: true,
-    },
+    // time: {
+    //   type: String,
+    //   required: true,
+    // },
     gateway: {
       type: String,
       enum: ['online', 'cash'],
