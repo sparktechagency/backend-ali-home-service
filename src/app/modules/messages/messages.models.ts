@@ -1,8 +1,8 @@
 import { Schema, Types, model } from 'mongoose';
-import { IMessages, IMessagesModel } from './messages.interface'; 
+import { IMessages, IMessagesModel } from './messages.interface';
 
 const messageSchema = new Schema<IMessages>(
-  { 
+  {
     text: {
       type: String,
       default: '',
@@ -24,8 +24,7 @@ const messageSchema = new Schema<IMessages>(
       type: Types.ObjectId,
       required: true,
       ref: 'User',
-    }, 
-  
+    },
     chat: {
       type: Types.ObjectId,
       required: true,

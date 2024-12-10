@@ -1,10 +1,9 @@
 import httpStatus from 'http-status';
 import AppError from '../../error/AppError';
-import Chat from './chat.models';
-import { IChat } from './chat.interface';
 import Message from '../messages/messages.models';
-import { deleteFromS3 } from '../../utils/s3'; 
-import { User } from '../user/user.models';
+import User from '../user/user.model';
+import { IChat } from './chat.interface';
+import Chat from './chat.models';
 
 // Create chat
 const createChat = async (payload: IChat) => {
@@ -13,7 +12,7 @@ const createChat = async (payload: IChat) => {
   if (!user1) {
     throw new AppError(httpStatus.UNAUTHORIZED, 'Invalid user');
   }
-  
+
   const user2 = await User.findById(payload?.participants[1]);
 
   if (!user2) {
@@ -102,7 +101,7 @@ const updateChatList = async (id: string, payload: Partial<IChat>) => {
 
 // Delete chat list
 const deleteChatList = async (id: string) => {
-  await deleteFromS3(`images/messages/${id}`);
+  // await deleteFromS3(`images/messages/${id}`);
   const result = await Chat.findByIdAndDelete(id);
   if (!result) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Chat not found');
