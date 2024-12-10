@@ -66,6 +66,7 @@ const insertPaymentIntoDb = async (payload: Ipayment) => {
 };
 
 const checkout = async (payload: any) => {
+  console.log('payload', payload);
   const result = await createCheckoutSession(payload);
   return result;
 };
@@ -89,7 +90,7 @@ const confirmPayment = async (query: Record<string, any>) => {
             quote,
             gateway: 'online',
             transactionId: PaymentSession?.id,
-            amount: PaymentSession?.amount_total,
+            amount: Number(PaymentSession?.amount_total) / 100,
           },
         ],
         { session },
@@ -261,7 +262,7 @@ const completePaymentByHandCash = async (payload: any) => {
         {
           quote: payload?.quote,
           gateway: 'cash',
-          amount: updateQuote?.amount,
+          amount: updateQuote?.fee,
         },
       ],
       { session },

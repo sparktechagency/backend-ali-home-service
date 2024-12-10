@@ -32,6 +32,14 @@ const paymentSchema = new Schema<Ipayment>(
       type: Number,
       required: true,
     },
+    coins: {
+      type: Number,
+      default: 0,
+    },
+    amountPaidWithCoins: {
+      type: Number,
+      default: 0,
+    },
     // time: {
     //   type: String,
     //   required: true,

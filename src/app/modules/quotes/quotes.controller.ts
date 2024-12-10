@@ -83,10 +83,9 @@ const cancelledQuote = catchAsync(async (req: Request, res: Response) => {
 });
 const acceptCompletationRequest = catchAsync(
   async (req: Request, res: Response) => {
-    console.log(req.body, 'quote');
-    const result = await quotesServices.acceptCompletationRequest(
-      req.body.quote,
-    );
+    const data = { ...req.body };
+    data['customer'] = req.user.profileId;
+    const result = await quotesServices.acceptCompletationRequest(data);
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,

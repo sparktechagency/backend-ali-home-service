@@ -448,12 +448,14 @@ const getQuotesStatusSummary = async (query: Record<string, any>) => {
 
 const acceptCompletationRequest = async (payload: any) => {
   const findQuote = await Quotes.findById(payload?.quote).select('customer');
-  if (findQuote?.customer !== payload?.customer) {
+
+  if (findQuote?.customer.toString() !== payload?.customer) {
     throw new AppError(
       httpStatus.NOT_ACCEPTABLE,
-      'You are not valid customer to scan the qr code.',
+      'You are not a valid customer to scan the QR code.',
     );
   }
+
   const result = await Quotes.findByIdAndUpdate(
     payload?.quote,
     // it should be iscustomer accept

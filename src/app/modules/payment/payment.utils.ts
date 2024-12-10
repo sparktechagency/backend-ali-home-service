@@ -16,6 +16,7 @@ const stripe: Stripe = new Stripe(config.stripe_secret as string, {
 
 export const createCheckoutSession = async (payload: any) => {
   const paymentGatewayData = await stripe.checkout.sessions.create({
+    payment_method_types: ['card', 'amazon_pay'],
     line_items: [
       {
         price_data: {
@@ -33,14 +34,12 @@ export const createCheckoutSession = async (payload: any) => {
 
     // success_url: `https://google.com`,
     success_url: `${config.server_url}/payments/confirm-payment?sessionId={CHECKOUT_SESSION_ID}&quote=${payload?.quote}`,
-    cancel_url: `${config.server_url}/payments/cancel?paymentId=${payload?.paymentId}`,
+    cancel_url: `${config.server_url}/payments/cancel?paymentId=${payload?.quote}`,
     mode: 'payment',
 
     invoice_creation: {
       enabled: true,
     },
-
-    payment_method_types: ['card'],
   });
 
   return paymentGatewayData;

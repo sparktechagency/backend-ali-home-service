@@ -9,6 +9,11 @@ router.get(
   auth(USER_ROLE.provider),
   paymentControllers.getPaymentsByProvider,
 );
+router.get(
+  '/history',
+  auth(USER_ROLE.provider),
+  paymentControllers.getPaymentsByProvider,
+);
 router.post(
   '/',
   auth(USER_ROLE.customer),
@@ -29,7 +34,7 @@ router.get(
   // auth(USER_ROLE.customer),
   paymentControllers.confirmPayment,
 );
-router.get(
+router.post(
   '/pay-by-cash',
   auth(USER_ROLE.customer),
   paymentControllers.completePaymentByHandCash,
