@@ -94,7 +94,6 @@ const confirmPayment = async (query: Record<string, any>) => {
         ],
         { session },
       );
-
       if (!result[0]) {
         throw new AppError(httpStatus.BAD_REQUEST, 'Something went wrong');
       }
