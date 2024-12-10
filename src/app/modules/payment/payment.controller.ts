@@ -55,6 +55,17 @@ const getPaymentsByProvider = catchAsync(
     });
   },
 );
+const completePaymentByHandCash = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await paymentServices.completePaymentByHandCash(req.body);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Payment is done.',
+      data: result,
+    });
+  },
+);
 
 export const paymentControllers = {
   createPaymentIntent,
@@ -62,4 +73,5 @@ export const paymentControllers = {
   checkout,
   confirmPayment,
   getPaymentsByProvider,
+  completePaymentByHandCash,
 };

@@ -4,6 +4,7 @@ import mongoose, { startSession } from 'mongoose';
 import Stripe from 'stripe';
 import config from '../../config';
 import AppError from '../../error/AppError';
+import { QuotestatusEnum } from '../quotes/quotes.constant';
 import { Quotes } from '../quotes/quotes.model';
 import Service from '../services/service.model';
 import { Ipayment } from './payment.interface';
@@ -93,14 +94,14 @@ const confirmPayment = async (query: Record<string, any>) => {
         ],
         { session },
       );
-      console.log(result);
+
       if (!result[0]) {
         throw new AppError(httpStatus.BAD_REQUEST, 'Something went wrong');
       }
       // Update booking route status to "paid"
       const updateQuote = await Quotes.findByIdAndUpdate(
         quote,
-        { isPaid: true },
+        { isPaid: true, status: QuotestatusEnum.COMPLETED },
         { session },
       );
       if (!updateQuote) {
@@ -243,10 +244,64 @@ const getPaymentsByProvider = async (query: Record<string, any>) => {
   };
 };
 
+const completePaymentByHandCash = async (payload: any) => {
+  const session = await mongoose.startSession();
+
+  try {
+    // Start a transaction
+    session.startTransaction();
+    const updateQuote: any = await Quotes.findByIdAndUpdate(
+      payload?.quote,
+      { isPaid: true, status: QuotestatusEnum.COMPLETED },
+
+      { session },
+    );
+    // Create a payment record
+    const result = await Payment.create(
+      [
+        {
+          quote: payload?.quote,
+          gateway: 'cash',
+          amount: updateQuote?.amount,
+        },
+      ],
+      { session },
+    );
+
+    // Check if payment record creation was successful
+    if (!result[0]) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Something went wrong');
+    }
+
+    // Update the quote's payment status
+
+    // Check if the quote update was successful
+    if (!updateQuote) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Something went wrong');
+    }
+
+    // Commit the transaction
+    await session.commitTransaction();
+
+    // End the session
+    await session.endSession();
+
+    return result;
+  } catch (error) {
+    // Rollback the transaction on error
+    await session.abortTransaction();
+    await session.endSession();
+
+    // Rethrow the error for handling elsewhere
+    throw error;
+  }
+};
+
 export const paymentServices = {
   insertPaymentIntoDb,
   createPaymentIntent,
   checkout,
+  completePaymentByHandCash,
   confirmPayment,
   getPaymentsByProvider,
 };

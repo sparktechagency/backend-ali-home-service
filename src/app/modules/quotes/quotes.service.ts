@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
+import AppError from '../../error/AppError';
 import { quotesSearchabFields } from './quotes.constant';
 import { IQuotes } from './quotes.interface';
 import { Quotes } from './quotes.model';
@@ -444,13 +446,25 @@ const getQuotesStatusSummary = async (query: Record<string, any>) => {
 
 // accetpcompletation offer
 
-const acceptCompletationRequest = async (id: string) => {
+const acceptCompletationRequest = async (payload: any) => {
+  const findQuote = await Quotes.findById(payload?.quote).select('customer');
+  if (findQuote?.customer !== payload?.customer) {
+    throw new AppError(
+      httpStatus.NOT_ACCEPTABLE,
+      'You are not valid customer to scan the qr code.',
+    );
+  }
   const result = await Quotes.findByIdAndUpdate(
-    id,
+    payload?.quote,
+    // it should be iscustomer accept
     { isProviderAccept: true },
     { new: true },
   );
   return result;
+};
+
+const openPaymentPopup = async () => {
+  return {};
 };
 
 export const quotesServices = {
@@ -464,4 +478,5 @@ export const quotesServices = {
   cancelledQuote,
   acceptCompletationRequest,
   getQuotesStatusSummary,
+  openPaymentPopup,
 };

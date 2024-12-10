@@ -14,10 +14,16 @@ router.post(
   quotesController.sendQuoteToCustomer,
 );
 router.get(
+  '/amount-popup',
+  // auth(USER_ROLE.employee, USER_ROLE.provider),
+  quotesController.openPaymentPopup,
+);
+router.get(
   '/provider',
   auth(USER_ROLE.employee, USER_ROLE.provider),
   quotesController.getProviderWiseQuotes,
 );
+
 router.get(
   '/',
   auth(USER_ROLE.customer, USER_ROLE.provider, USER_ROLE.employee),
@@ -32,6 +38,11 @@ router.get(
   '/:id',
   auth(USER_ROLE.customer, USER_ROLE.provider, USER_ROLE.employee),
   quotesController.getSingleQuotes,
+);
+router.patch(
+  '/accept',
+  auth(USER_ROLE.customer, USER_ROLE.provider, USER_ROLE.employee),
+  quotesController.acceptCompletationRequest,
 );
 router.patch(
   '/:id',
@@ -53,11 +64,7 @@ router.patch(
   auth(USER_ROLE.customer, USER_ROLE.provider, USER_ROLE.employee),
   quotesController.cancelledQuote,
 );
-router.patch(
-  '/accept/:id',
-  auth(USER_ROLE.customer, USER_ROLE.provider, USER_ROLE.employee),
-  quotesController.acceptCompletationRequest,
-);
+
 router.get(
   '/summery/count',
   auth(USER_ROLE.customer, USER_ROLE.provider, USER_ROLE.employee),

@@ -29,5 +29,10 @@ router.get(
   // auth(USER_ROLE.customer),
   paymentControllers.confirmPayment,
 );
+router.get(
+  '/pay-by-cash',
+  auth(USER_ROLE.customer),
+  paymentControllers.completePaymentByHandCash,
+);
 
 export const paymentRoutes = router;

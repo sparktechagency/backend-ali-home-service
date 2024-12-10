@@ -83,8 +83,9 @@ const cancelledQuote = catchAsync(async (req: Request, res: Response) => {
 });
 const acceptCompletationRequest = catchAsync(
   async (req: Request, res: Response) => {
+    console.log(req.body, 'quote');
     const result = await quotesServices.acceptCompletationRequest(
-      req.params.id,
+      req.body.quote,
     );
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -107,6 +108,17 @@ const getQuotesStatusSummary = catchAsync(
     });
   },
 );
+const openPaymentPopup = catchAsync(async (req: Request, res: Response) => {
+  // const query = { ...req.query };
+  // query['shop'] = req.user.shop;
+  const result = await quotesServices.openPaymentPopup();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Quote summery retrieved successfully',
+    data: result,
+  });
+});
 
 export const quotesController = {
   sendQuoteToCustomer,
@@ -119,4 +131,5 @@ export const quotesController = {
   cancelledQuote,
   acceptCompletationRequest,
   getQuotesStatusSummary,
+  openPaymentPopup,
 };
