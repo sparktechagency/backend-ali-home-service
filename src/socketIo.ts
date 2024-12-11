@@ -9,11 +9,14 @@ import httpStatus from 'http-status';
 import { Types } from 'mongoose';
 import AppError from './app/error/AppError';
 
+import getUserDetailsFromToken from './app/helper/getUserDetails';
 import { IChat } from './app/modules/chat/chat.interface';
 import Chat from './app/modules/chat/chat.models';
 import { chatService } from './app/modules/chat/chat.service';
+import Customer from './app/modules/customer/customer.model';
 import Message from './app/modules/messages/messages.models';
-import { TUser } from './app/modules/user/user.interface';
+import { Provider } from './app/modules/provider/provider.model';
+import { UserRole } from './app/modules/user/user.interface';
 import User from './app/modules/user/user.model';
 import { callbackFn } from './app/utils/CallbackFn';
 
@@ -35,17 +38,17 @@ const initializeSocketIO = (server: HttpServer) => {
       const token =
         socket.handshake.auth?.token || socket.handshake.headers?.token;
       //----------------------check Token and return user details-------------------------//
-      // const user: any = await getUserDetailsFromToken(token) ?? {};
-      const user: any = {};
-      if (!user) {
-        // io.emit('io-error', {success:false, message:'invalid Token'});
-        throw new AppError(httpStatus.UNAUTHORIZED, 'Invalid token');
-      }
+      const user: any = await getUserDetailsFromToken(token);
 
-      socket.join(user?._id?.toString());
+      // if (!user) {
+      //   // io.emit('io-error', {success:false, message:'invalid Token'});
+      //   throw new AppError(httpStatus.UNAUTHORIZED, 'Invalid token');
+      // }
+
+      socket.join(user?.profileId?.toString());
 
       //----------------------user id set in online array-------------------------//
-      onlineUser.add(user?._id?.toString());
+      onlineUser.add(user?.profileId?.toString());
 
       socket.on('check', (data, callback) => {
         console.log(data);
@@ -57,8 +60,8 @@ const initializeSocketIO = (server: HttpServer) => {
       io.emit('onlineUser', Array.from(onlineUser));
 
       //----------------------user details and messages send for front end -->(as need to use)------------------------//
-      socket.on('message-page', async (userId, callback) => {
-        if (!userId) {
+      socket.on('message-page', async (receiverId: any, callback) => {
+        if (!receiverId) {
           callbackFn(callback, {
             success: false,
             message: 'userId is required',
@@ -66,54 +69,43 @@ const initializeSocketIO = (server: HttpServer) => {
         }
 
         try {
-          const receiverDetails: TUser | null | any = await User.findById(
-            userId,
-          ).select('_id email role image');
+          // check the if receiver provider or customer
+          let receiver;
+          const findReceiver = await User.findById(receiverId).select('role');
+          switch (findReceiver?.role) {
+            case UserRole.customer:
+              receiver = await Customer.findOne({
+                user: receiverId,
+              }).select('name image');
 
-          if (!receiverDetails) {
-            callbackFn(callback, {
-              success: false,
-              message: 'user is not found!',
-            });
-            io.emit('io-error', {
-              success: false,
-              message: 'user is not found!',
-            });
+              break;
+            case UserRole.provider:
+              receiver = await Provider.findOne({
+                user: receiverId,
+              }).select('name image');
+
+              break;
+
+            default:
+              break;
           }
-          const payload = {
-            _id: receiverDetails?._id,
-            email: receiverDetails?.email,
-            image: receiverDetails?.image,
-            role: receiverDetails?.role,
+
+          const userData = {
+            _id: receiver?._id,
+            image: receiver?.image,
+            name: receiver?.name,
           };
 
-          socket.emit('user-details', payload);
+          socket.emit('user-details', userData);
 
           const getPreMessage = await Message.find({
             $or: [
-              { sender: user?._id, receiver: userId },
-              { sender: userId, receiver: user?._id },
+              { sender: user?.profileId, receiver: receiverId.toString() },
+              { sender: receiverId.toString(), receiver: user?.profileId },
             ],
           }).sort({ updatedAt: 1 });
 
           socket.emit('message', getPreMessage || []);
-
-          // Notification
-          // const allUnReaddMessage = await Message.countDocuments({
-          //   receiver: user?._id,
-          //   seen: false,
-          // });
-          // const variable = 'new-notifications::' + user?._id;
-          // io.emit(variable, allUnReaddMessage);
-
-          // const allUnReaddMessage2 = await Message.countDocuments({
-          //   receiver: userId,
-          //   seen: false,
-          // });
-          // const variable2 = 'new-notifications::' + userId;
-          // io.emit(variable2, allUnReaddMessage2);
-
-          //end Notification//
         } catch (error: any) {
           callbackFn(callback, {
             success: false,
@@ -239,22 +231,17 @@ const initializeSocketIO = (server: HttpServer) => {
       });
 
       socket.on('send-message', async (payload, callback) => {
-        payload.sender = user?._id;
+        payload.sender = user?.profileId;
         // --------------------------------------------not needed  -------------------------------
-        const alreadyExists = await Chat.findOne({
-          participants: { $all: [payload.sender, payload.receiver] },
-        }).populate(['participants']);
 
-        if (!alreadyExists) {
-          const chatList = await Chat.create({
-            participants: [payload.sender, payload.receiver],
-          });
+        // const payload  ={
+        //   receiver:"",
+        //   text:"",
+        //   image:"",
+        //   chat:"chatId"
+        // }
 
-          payload.chat = chatList?._id;
-        } else {
-          payload.chat = alreadyExists?._id;
-        }
-
+        // --------------------------
         const result = await Message.create(payload);
 
         if (!result) {
@@ -266,7 +253,7 @@ const initializeSocketIO = (server: HttpServer) => {
         }
 
         const senderMessage = 'new-message::' + result.chat.toString();
-
+        // need to handle from frontend developer
         io.emit(senderMessage, result);
 
         // //----------------------ChatList------------------------//
@@ -308,9 +295,9 @@ const initializeSocketIO = (server: HttpServer) => {
       });
 
       //-----------------------Typing------------------------//
-      socket.on('typing', function (data) {
-        const chat = data.chatId.toString();
-        const message = user?.name + ' is typing...';
+      socket.on('typing', function (payload) {
+        const chat = payload?.chat.toString();
+        const message = 'User' + ' is typing...';
         socket.emit(chat, { message: message });
       });
 

@@ -7,6 +7,7 @@ import { messagesService } from './messages.service';
 import httpStatus from 'http-status';
 import { io } from '../../../server';
 import AppError from '../../error/AppError';
+import { uploadManyToS3 } from '../../utils/fileHelper';
 import { IChat } from '../chat/chat.interface';
 import Chat from '../chat/chat.models';
 import { chatService } from '../chat/chat.service';
@@ -132,6 +133,27 @@ const deleteMessages = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const UploadImage = catchAsync(async (req: Request, res: Response) => {
+  let images;
+  if (req?.files) {
+    // Casting req.files to Express.Multer.File[]
+    // @ts-ignore
+    const filesArray = req?.files?.files as Express.Multer.File[];
+    images = await uploadManyToS3(
+      filesArray.map((file: Express.Multer.File) => ({
+        file,
+        path: 'message/',
+      })),
+    );
+  }
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Images successfully uploaded',
+    data: images,
+  });
+});
 export const messagesController = {
   createMessages,
   getAllMessages,
@@ -140,4 +162,5 @@ export const messagesController = {
   updateMessages,
   deleteMessages,
   seenMessage,
+  UploadImage,
 };

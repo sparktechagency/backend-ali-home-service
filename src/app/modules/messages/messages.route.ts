@@ -1,6 +1,9 @@
 import { Router } from 'express';
+
+import auth from '../../middleware/auth';
 import parseData from '../../middleware/parseData';
 import validateRequest from '../../middleware/validateRequest';
+import { USER_ROLE } from '../user/user.constant';
 import { messagesController } from './messages.controller';
 import { messagesValidation } from './messages.validation';
 
@@ -13,6 +16,13 @@ router.post(
 
   validateRequest(messagesValidation.sendMessageValidation),
   messagesController.createMessages,
+);
+router.post(
+  '/upload/images',
+
+  // validateRequest(messagesValidation.sendMessageValidation),
+  auth(USER_ROLE.customer, USER_ROLE.provider),
+  messagesController.UploadImage,
 );
 
 router.patch(
@@ -43,10 +53,6 @@ router.get(
   messagesController.getMessagesById,
 );
 
-router.get(
-  '/',
-
-  messagesController.getAllMessages,
-);
+router.get('/', messagesController.getAllMessages);
 
 export const messagesRoutes = router;

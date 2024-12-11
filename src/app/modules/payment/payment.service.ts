@@ -57,10 +57,11 @@ const insertPaymentIntoDb = async (payload: Ipayment) => {
     const result = await Payment.create([payload], { session });
     await session.commitTransaction();
     await session.endSession();
-    return result;
+    return result[0];
   } catch (error) {
-    await session.abortTransaction();
     await session.endSession();
+    await session.abortTransaction();
+
     throw new Error(error as any);
   }
 };

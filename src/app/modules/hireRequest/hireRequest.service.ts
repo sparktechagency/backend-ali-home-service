@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import httpStatus from 'http-status';
+import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
+import AppError from '../../error/AppError';
 import calculatePagination from '../../shared/paginationHelper';
+import Chat from '../chat/chat.models';
 import { sendNotification } from '../notification/notification.utils';
 import { Provider } from '../provider/provider.model';
 import { hireRequestFilterableFields } from './hireRequest.constant';
@@ -9,25 +13,56 @@ import { IhireRequest } from './hireRequest.interface';
 import HireRequest from './hireRequest.model';
 
 const insertHireRequestIntoDb = async (payload: IhireRequest) => {
-  const findFcmToken = await Provider.findById(payload?.provider).select(
-    'fcmToken',
-  );
-  console.log(payload);
+  const session = await mongoose.startSession();
 
-  // const findCustomer = await Customer.findById(payload?.customer).select(
-  //   'fcmToken',
-  // );
-  const result = await HireRequest.create(payload);
-  const message = {
-    title: 'New hire request',
-    body: 'A customer sent a hire request. please check the dashboard',
-    data: {
-      receiver: payload?.provider,
-      type: 'hireRequest',
-    },
-  };
-  await sendNotification([findFcmToken?.fcmToken as string], message);
-  return result;
+  try {
+    const findFcmToken = await Provider.findById(payload?.provider).select(
+      'fcmToken',
+    );
+    session.startTransaction();
+    // const findCustomer = await Customer.findById(payload?.customer).select(
+    //   'fcmToken',
+    // );
+
+    const isChatExist = await Chat.findOne({
+      participants: { $all: [payload.provider, payload.customer] },
+    });
+    console.log('isChatExist', isChatExist);
+    if (!isChatExist) {
+      const newChat = await Chat.create(
+        [
+          {
+            participants: [payload.provider, payload.customer],
+          },
+        ],
+        { session },
+      );
+      if (!newChat[0]) {
+        throw new AppError(httpStatus.BAD_REQUEST, 'Chat not created');
+      }
+    }
+
+    const result = await HireRequest.create([payload], { session });
+
+    const message = {
+      title: 'New hire request',
+      body: 'A customer sent a hire request. please check the dashboard',
+      data: {
+        receiver: payload.provider,
+        type: 'hireRequest',
+      },
+    };
+    await sendNotification([findFcmToken?.fcmToken as string], message);
+    await session.commitTransaction();
+    await session.endSession();
+
+    return result[0];
+  } catch (error: any) {
+    console.log(error);
+    await session.endSession();
+    await session.abortTransaction();
+    throw new Error(error);
+  }
 };
 
 //  get all my hire request

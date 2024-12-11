@@ -40,7 +40,7 @@ const getMyChatList = async (userId: string) => {
     participants: { $all: userId },
   }).populate({
     path: 'participants',
-    select: 'name email image role _id phoneNumber',
+    select: 'name  image  _id',
     match: { _id: { $ne: userId } },
   });
 

@@ -16,14 +16,12 @@ const messageSchema = new Schema<IMessages>(
       default: false,
     },
     sender: {
-      type: Types.ObjectId,
+      type: Schema.Types.Mixed,
       required: true,
-      ref: 'User',
     },
     receiver: {
-      type: Types.ObjectId,
+      type: Schema.Types.Mixed,
       required: true,
-      ref: 'User',
     },
     chat: {
       type: Types.ObjectId,

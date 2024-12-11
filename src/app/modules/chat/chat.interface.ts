@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 export interface IChat {
   _id?: ObjectId;
   participants: ObjectId[];
-  status: string;
+  status: 'accepted' | 'blocked';
 }
 
 export type IChatModel = Model<IChat, Record<string, unknown>>;
