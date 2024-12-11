@@ -17,7 +17,6 @@ import Customer from './app/modules/customer/customer.model';
 import Message from './app/modules/messages/messages.models';
 import { Provider } from './app/modules/provider/provider.model';
 import { UserRole } from './app/modules/user/user.interface';
-import User from './app/modules/user/user.model';
 import { callbackFn } from './app/utils/CallbackFn';
 
 const initializeSocketIO = (server: HttpServer) => {
@@ -71,18 +70,16 @@ const initializeSocketIO = (server: HttpServer) => {
         try {
           // check the if receiver provider or customer
           let receiver;
-          const findReceiver = await User.findById(receiverId).select('role');
-          switch (findReceiver?.role) {
+          // IF USER IS PROVIDER THAT MEANS WE NEED TO RETRIVE CUSTOMER ELSE PROVIDER
+          switch (user?.role) {
             case UserRole.customer:
-              receiver = await Customer.findOne({
-                user: receiverId,
-              }).select('name image');
+              receiver =
+                await Provider.findById(receiverId).select('name image');
 
               break;
             case UserRole.provider:
-              receiver = await Provider.findOne({
-                user: receiverId,
-              }).select('name image');
+              receiver =
+                await Customer.findById(receiverId).select('name image');
 
               break;
 

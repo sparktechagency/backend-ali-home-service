@@ -109,10 +109,136 @@ const deleteChatList = async (id: string) => {
   return result;
 };
 
+// get my all chatlist
+
+const getmychatListv2 = async (userData: any) => {
+  const { user, role } = userData;
+
+  // Convert `user` to ObjectId
+  const chatList = await Chat.aggregate([
+    // Match chats where the user is a participant
+    {
+      $match: {
+        participants: { $all: [user] },
+      },
+    },
+    // Add a field to convert participant strings to ObjectIds
+    {
+      $addFields: {
+        participantsObjectId: {
+          $map: {
+            input: '$participants',
+            as: 'participant',
+            in: { $toObjectId: '$$participant' },
+          },
+        },
+      },
+    },
+    // Lookup to find the last message for each chat
+    {
+      $lookup: {
+        from: 'messages', // Collection name for messages
+        let: { chatId: '$_id' },
+        pipeline: [
+          { $match: { $expr: { $eq: ['$chat', '$$chatId'] } } }, // Match messages for the current chat
+          { $sort: { updatedAt: -1 } }, // Sort by updatedAt in descending order
+          { $limit: 1 }, // Get only the latest message
+        ],
+        as: 'lastMessage',
+      },
+    },
+    // Unwind the lastMessage array to simplify the structure
+    {
+      $unwind: {
+        path: '$lastMessage',
+        preserveNullAndEmptyArrays: true, // Handle chats without messages
+      },
+    },
+    // Add a field to determine the participant to fetch additional data for
+    {
+      $addFields: {
+        targetParticipant: {
+          $arrayElemAt: [
+            {
+              $filter: {
+                input: '$participantsObjectId',
+                cond: { $ne: ['$$this', user] }, // Find the other participant
+              },
+            },
+            0,
+          ],
+        },
+      },
+    },
+    // Lookup data from Customer or Provider based on role
+    {
+      $lookup: {
+        from: role === 'provider' ? 'customers' : 'providers', // Dynamic collection lookup
+        localField: 'targetParticipant',
+        foreignField: '_id',
+        as: 'participantDetails',
+      },
+    },
+    // Unwind participantDetails to simplify structure
+    {
+      $unwind: {
+        path: '$participantDetails',
+        preserveNullAndEmptyArrays: true, // Handle cases where no participant details are found
+      },
+    },
+    // Add unread message count
+    {
+      $lookup: {
+        from: 'messages', // Collection name for messages
+        let: { chatId: '$_id', userId: user },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$chat', '$$chatId'] }, // Match messages for this chat
+                  { $eq: ['$seen', false] }, // Only unseen messages
+                  { $ne: ['$sender', '$$userId'] }, // Messages not sent by the user
+                ],
+              },
+            },
+          },
+          { $count: 'unreadCount' }, // Count the unseen messages
+        ],
+        as: 'unreadMessages',
+      },
+    },
+    // Extract the unread message count
+    {
+      $addFields: {
+        unreadMessageCount: {
+          $arrayElemAt: ['$unreadMessages.unreadCount', 0], // Get the count or default to 0
+        },
+      },
+    },
+    // Project the desired fields
+    {
+      $project: {
+        _id: 1,
+        participants: 1,
+        lastMessage: 1,
+        unreadMessageCount: { $ifNull: ['$unreadMessageCount', 0] }, // Default to 0 if null
+        participantDetails: {
+          name: '$participantDetails.name',
+          image: '$participantDetails.image',
+        },
+      },
+    },
+  ]);
+
+  return chatList;
+};
+
 export const chatService = {
   createChat,
   getMyChatList,
   getChatById,
   updateChatList,
   deleteChatList,
+  getmychatListv2,
 };

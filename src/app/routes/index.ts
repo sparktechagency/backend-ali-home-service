@@ -8,6 +8,7 @@ import { contentRoues } from '../modules/content/content.route';
 import { employeeRoutes } from '../modules/employee/employee.route';
 import { hireRequestRoutes } from '../modules/hireRequest/hireRequest.route';
 
+import { chatRoutes } from '../modules/chat/chat.route';
 import notificationRoutes from '../modules/notification/notification.route';
 import { paymentRoutes } from '../modules/payment/payment.route';
 import { quotesRoutes } from '../modules/quotes/quotes.route';
@@ -62,6 +63,10 @@ const moduleRoutes = [
   {
     path: '/reviews',
     route: reviewRoutes,
+  },
+  {
+    path: '/chat',
+    route: chatRoutes,
   },
   {
     path: '/payments',

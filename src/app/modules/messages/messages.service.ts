@@ -153,6 +153,8 @@ const seenMessage = async (userId: string, chatId: string) => {
   return updateMessages;
 };
 
+const uploadImages = async (files: any) => {};
+
 export const messagesService = {
   createMessages,
   getMessagesByChatId,

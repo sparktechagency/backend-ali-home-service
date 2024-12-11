@@ -13,7 +13,7 @@ const createChat = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getMyChatList = catchAsync(async (req: Request, res: Response) => { 
+const getMyChatList = catchAsync(async (req: Request, res: Response) => {
   const result = await chatService.getMyChatList(req.user.userId);
   sendResponse(res, {
     statusCode: 200,
@@ -25,7 +25,7 @@ const getMyChatList = catchAsync(async (req: Request, res: Response) => {
 
 const getChatById = catchAsync(async (req: Request, res: Response) => {
   const result = await chatService.getChatById(req.params.id);
-  sendResponse( res, {
+  sendResponse(res, {
     statusCode: 200,
     success: true,
     message: 'Chat retrieved successfully',
@@ -52,11 +52,20 @@ const deleteChat = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
-
+const getMyChatListv2 = catchAsync(async (req: Request, res: Response) => {
+  const result = await chatService.getmychatListv2(req.body);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Chat retrieved successfully',
+    data: result,
+  });
+});
 export const chatController = {
   createChat,
   getMyChatList,
   getChatById,
   updateChat,
   deleteChat,
+  getMyChatListv2,
 };
