@@ -1,4 +1,5 @@
 import httpStatus from 'http-status';
+import mongoose from 'mongoose';
 import AppError from '../../error/AppError';
 import Message from '../messages/messages.models';
 import User from '../user/user.model';
@@ -232,6 +233,24 @@ const getmychatListv2 = async (userData: any) => {
   ]);
 
   return chatList;
+};
+
+const updateMessageAndChatAsSeen = async (payload: any) => {
+  const messageIdList: any = await Message.aggregate([
+    {
+      $match: {
+        chat: new mongoose.Types.ObjectId(payload?.chat),
+        seen: false,
+        sender: { $ne: payload?.user },
+      },
+    },
+    { $group: { _id: null, ids: { $push: '$_id' } } },
+    { $project: { _id: 0, ids: 1 } },
+  ]);
+  const updateMessages = await Message.updateMany(
+    { _id: { $in: messageIdList?.ids } },
+    { $set: { seen: true } },
+  );
 };
 
 export const chatService = {

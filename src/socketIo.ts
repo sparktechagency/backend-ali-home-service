@@ -116,8 +116,11 @@ const initializeSocketIO = (server: HttpServer) => {
       //----------------------chat list------------------------//
       socket.on('my-chat-list', async (data, callback) => {
         try {
-          const chatList = await chatService.getMyChatList(user?._id);
-          const myChat = 'chat-list::' + user?._id;
+          const chatList = await chatService.getmychatListv2({
+            user: user?.profileId,
+            role: user?.role,
+          });
+          const myChat = 'chat-list::' + user?.profileId;
 
           io.emit(myChat, chatList);
 
@@ -163,7 +166,7 @@ const initializeSocketIO = (server: HttpServer) => {
               $match: {
                 chat: new Types.ObjectId(chatId),
                 seen: false,
-                sender: { $ne: new Types.ObjectId(user?._id) },
+                sender: { $ne: user?.profileId },
               },
             },
             { $group: { _id: null, ids: { $push: '$_id' } } },
