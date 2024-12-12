@@ -1,5 +1,8 @@
 import { Router } from 'express';
+
+import auth from '../../middleware/auth';
 import validateRequest from '../../middleware/validateRequest';
+import { USER_ROLE } from '../user/user.constant';
 import { chatController } from './chat.controller';
 import { chatValidation } from './chat.validation';
 
@@ -20,7 +23,11 @@ router.patch(
 
 router.delete('/:id', chatController.deleteChat);
 
-router.get('/my-chat-list', chatController.getMyChatListv2);
+router.get(
+  '/my-chat-list',
+  auth(USER_ROLE.customer, USER_ROLE.provider),
+  chatController.getMyChatListv2ForRestApi,
+);
 
 router.get('/:id', chatController.getChatById);
 

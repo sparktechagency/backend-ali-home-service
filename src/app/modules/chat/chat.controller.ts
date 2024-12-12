@@ -61,6 +61,20 @@ const getMyChatListv2 = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const getMyChatListv2ForRestApi = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await chatService.getmychatListv2({
+      user: req?.user?.profileId,
+      role: req?.user?.role,
+    });
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'Chat retrieved successfully',
+      data: result,
+    });
+  },
+);
 export const chatController = {
   createChat,
   getMyChatList,
@@ -68,4 +82,5 @@ export const chatController = {
   updateChat,
   deleteChat,
   getMyChatListv2,
+  getMyChatListv2ForRestApi,
 };

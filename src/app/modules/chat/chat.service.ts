@@ -114,7 +114,7 @@ const deleteChatList = async (id: string) => {
 
 const getmychatListv2 = async (userData: any) => {
   const { user, role } = userData;
-
+  console.log('user', user, 'role', role);
   // Convert `user` to ObjectId
   const chatList = await Chat.aggregate([
     // Match chats where the user is a participant

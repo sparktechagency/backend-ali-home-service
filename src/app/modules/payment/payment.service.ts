@@ -4,6 +4,7 @@ import mongoose, { startSession } from 'mongoose';
 import Stripe from 'stripe';
 import config from '../../config';
 import AppError from '../../error/AppError';
+import { Coin } from '../coins/coins.model';
 import { QuotestatusEnum } from '../quotes/quotes.constant';
 import { Quotes } from '../quotes/quotes.model';
 import Service from '../services/service.model';
@@ -109,6 +110,20 @@ const confirmPayment = async (query: Record<string, any>) => {
         throw new AppError(httpStatus.BAD_REQUEST, 'Something went wrong');
       }
 
+      if (Number(PaymentSession?.amount_total) / 100 >= 30) {
+        const coinsToAdd = Math.floor(
+          Number(PaymentSession?.amount_total) / 100 / 10,
+        );
+        await Coin.findOneAndUpdate(
+          { customer: updateQuote?.customer },
+          {
+            $inc: {
+              coins: coinsToAdd,
+            },
+          },
+          { session },
+        );
+      }
       await session.commitTransaction();
       await session.endSession();
       return result;
@@ -280,7 +295,18 @@ const completePaymentByHandCash = async (payload: any) => {
     if (!updateQuote) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Something went wrong');
     }
-
+    if (Number(updateQuote?.fee) / 100 >= 30) {
+      const coinsToAdd = Math.floor(Number(updateQuote?.fee) / 100 / 10);
+      await Coin.findOneAndUpdate(
+        { customer: updateQuote?.customer },
+        {
+          $inc: {
+            coins: coinsToAdd,
+          },
+        },
+        { session },
+      );
+    }
     // Commit the transaction
     await session.commitTransaction();
 

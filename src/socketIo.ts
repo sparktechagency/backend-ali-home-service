@@ -122,9 +122,15 @@ const initializeSocketIO = (server: HttpServer) => {
           });
           const myChat = 'chat-list::' + user?.profileId;
 
-          io.emit(myChat, chatList);
+          const chatDetails = {
+            statusCode: 200,
+            success: true,
+            message: 'chat retrived successfully!',
+            data: chatList,
+          };
+          io.emit(myChat, chatDetails);
 
-          callbackFn(callback, { success: true, message: chatList });
+          callbackFn(callback, { success: true, data: chatList });
         } catch (error: any) {
           callbackFn(callback, {
             success: false,
@@ -257,19 +263,36 @@ const initializeSocketIO = (server: HttpServer) => {
         io.emit(senderMessage, result);
 
         // //----------------------ChatList------------------------//
-        const ChatListSender = await chatService.getMyChatList(
-          result?.sender.toString(),
-        );
+        // const ChatListSender = await chatService.getMyChatList(
+        //   result?.sender.toString(),
+        // );
+        const ChatListSender = await chatService.getmychatListv2({
+          user: result?.sender,
+          role: user?.role,
+        });
+        const chatDetailsSender = {
+          statusCode: 200,
+          success: true,
+          message: 'chat retrived successfully!',
+          data: ChatListSender,
+        };
         const senderChat = 'chat-list::' + result.sender.toString();
-        io.emit(senderChat, ChatListSender);
-
-        const ChatListReceiver = await chatService.getMyChatList(
-          result?.receiver.toString(),
-        );
-
+        io.emit(senderChat, chatDetailsSender);
+        const ChatListReceiver = await chatService.getmychatListv2({
+          user: result?.receiver,
+          role:
+            user?.role === UserRole.provider
+              ? UserRole.customer
+              : UserRole.provider,
+        });
+        const chatDetailsReceiver = {
+          statusCode: 200,
+          success: true,
+          message: 'chat retrived successfully!',
+          data: ChatListReceiver,
+        };
         const receiverChat = 'chat-list::' + result.receiver.toString();
-
-        io.emit(receiverChat, ChatListReceiver);
+        io.emit(receiverChat, chatDetailsReceiver);
 
         // Notification
         // const allUnReaddMessage = await Message.countDocuments({
@@ -297,7 +320,7 @@ const initializeSocketIO = (server: HttpServer) => {
       //-----------------------Typing------------------------//
       socket.on('typing', function (payload) {
         const chat = payload?.chat.toString();
-        const message = 'User' + ' is typing...';
+        const message = payload?.userName + ' is typing...';
         socket.emit(chat, { message: message });
       });
 
@@ -322,7 +345,7 @@ const initializeSocketIO = (server: HttpServer) => {
 
       //-----------------------Disconnect------------------------//
       socket.on('disconnect', () => {
-        onlineUser.delete(user?._id?.toString());
+        onlineUser.delete(user?.profileId?.toString());
         io.emit('onlineUser', Array.from(onlineUser));
         console.log('disconnect user ', socket.id);
       });
