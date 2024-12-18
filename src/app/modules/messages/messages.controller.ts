@@ -146,7 +146,7 @@ const UploadImage = catchAsync(async (req: Request, res: Response) => {
       })),
     );
   }
-
+  console.log(images);
   sendResponse(res, {
     statusCode: 200,
     success: true,

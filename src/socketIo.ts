@@ -59,7 +59,8 @@ const initializeSocketIO = (server: HttpServer) => {
       io.emit('onlineUser', Array.from(onlineUser));
 
       //----------------------user details and messages send for front end -->(as need to use)------------------------//
-      socket.on('message-page', async (receiverId: any, callback) => {
+      socket.on('message-page', async ({ receiverId }, callback) => {
+        console.log(receiverId);
         if (!receiverId) {
           callbackFn(callback, {
             success: false,
@@ -69,6 +70,7 @@ const initializeSocketIO = (server: HttpServer) => {
 
         try {
           // check the if receiver provider or customer
+          // receiverId = receiverId.trim();
           let receiver;
           // IF USER IS PROVIDER THAT MEANS WE NEED TO RETRIVE CUSTOMER ELSE PROVIDER
           switch (user?.role) {

@@ -33,7 +33,7 @@ export const createCheckoutSession = async (payload: any) => {
     ],
 
     // success_url: `https://google.com`,
-    success_url: `${config.server_url}/payments/confirm-payment?sessionId={CHECKOUT_SESSION_ID}&quote=${payload?.quote}`,
+    success_url: `${config.server_url}/payments/confirm-payment?sessionId={CHECKOUT_SESSION_ID}&quote=${payload?.quote}&coins=${payload?.coins}&amountPaidWithCoins=${payload?.amountPaidWithCoins}`,
     cancel_url: `${config.server_url}/payments/cancel?paymentId=${payload?.quote}`,
     mode: 'payment',
 

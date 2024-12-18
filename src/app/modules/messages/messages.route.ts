@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import auth from '../../middleware/auth';
+import upload from '../../middleware/fileUpload';
 import parseData from '../../middleware/parseData';
 import validateRequest from '../../middleware/validateRequest';
 import { USER_ROLE } from '../user/user.constant';
@@ -21,6 +22,7 @@ router.post(
   '/upload/images',
 
   // validateRequest(messagesValidation.sendMessageValidation),
+  upload.fields([{ name: 'files', maxCount: 5 }]),
   auth(USER_ROLE.customer, USER_ROLE.provider),
   messagesController.UploadImage,
 );

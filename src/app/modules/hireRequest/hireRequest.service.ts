@@ -55,7 +55,6 @@ const insertHireRequestIntoDb = async (payload: IhireRequest) => {
     await sendNotification([findFcmToken?.fcmToken as string], message);
     await session.commitTransaction();
     await session.endSession();
-
     return result[0];
   } catch (error: any) {
     console.log(error);

@@ -225,6 +225,7 @@ const getmychatListv2 = async (userData: any) => {
         lastMessage: 1,
         unreadMessageCount: { $ifNull: ['$unreadMessageCount', 0] }, // Default to 0 if null
         participantDetails: {
+          _id: '$participantDetails._id',
           name: '$participantDetails.name',
           image: '$participantDetails.image',
         },

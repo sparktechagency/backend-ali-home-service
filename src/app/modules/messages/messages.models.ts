@@ -8,8 +8,8 @@ const messageSchema = new Schema<IMessages>(
       default: '',
     },
     imageUrl: {
-      type: String,
-      default: '',
+      type: [String],
+      default: null, // default to null if no value is provided
     },
     seen: {
       type: Boolean,

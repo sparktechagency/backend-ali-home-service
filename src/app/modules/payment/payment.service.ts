@@ -74,7 +74,7 @@ const checkout = async (payload: any) => {
 };
 
 const confirmPayment = async (query: Record<string, any>) => {
-  const { sessionId, quote } = query;
+  const { sessionId, quote, amountPaidWithCoins, coins } = query;
   const session = await startSession();
   const PaymentSession = await stripe.checkout.sessions.retrieve(sessionId);
   console.log(PaymentSession?.status);
@@ -91,6 +91,8 @@ const confirmPayment = async (query: Record<string, any>) => {
           {
             quote,
             gateway: 'online',
+            amountPaidWithCoins: amountPaidWithCoins,
+            coins: coins,
             transactionId: PaymentSession?.id,
             amount: Number(PaymentSession?.amount_total) / 100,
           },
@@ -279,6 +281,8 @@ const completePaymentByHandCash = async (payload: any) => {
           quote: payload?.quote,
           gateway: 'cash',
           amount: updateQuote?.fee,
+          coins: payload?.coins,
+          amountPaidWithCoins: payload?.amountPaidWithCoins,
         },
       ],
       { session },
