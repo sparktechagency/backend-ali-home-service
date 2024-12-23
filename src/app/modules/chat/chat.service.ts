@@ -116,7 +116,9 @@ const getChatIdByCustomer = async (customer: string) => {
   const result = await Chat.findOne({ participants: { $in: customer } }).select(
     '_id',
   );
-  return result;
+  return {
+    chatId: result?._id,
+  };
 };
 // get my all chatlist
 
