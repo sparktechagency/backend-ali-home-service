@@ -3,5 +3,5 @@
 3. add notification make payment
 
 4. improtant remove hire request after sending the quote or make a status system ---> its done
-5. improtant make zod validation for message --> done
+5. improtant make zod validation for message --> dones
 6. improtant add 30 coins for each booking
