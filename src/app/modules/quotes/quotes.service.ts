@@ -4,9 +4,11 @@ import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../error/AppError';
+import { createMessage } from '../../utils/message';
 import Customer from '../customer/customer.model';
 import HireRequest from '../hireRequest/hireRequest.model';
 import { sendNotification } from '../notification/notification.utils';
+import Service from '../services/service.model';
 import { quotesSearchabFields } from './quotes.constant';
 import { IQuotes } from './quotes.interface';
 import { Quotes } from './quotes.model';
@@ -342,6 +344,10 @@ const getAllQuotes = async (query: Record<string, any>) => {
 const getSingleQuotes = async (id: string) => {
   const result = await Quotes.findById(id)
     .populate({
+      path: 'request', // Populate the service field
+      select: 'description images priority rejectionReason',
+    })
+    .populate({
       path: 'service',
       populate: {
         path: 'category', // Populate category inside service
@@ -373,8 +379,33 @@ const acceptQuote = async (id: string) => {
     { new: true },
   );
 
+  // Fetch the service with nested population in one query
+  const findService: any = await Service.findById(result?.service)
+    .select('_id')
+    .populate({
+      path: 'shop',
+      select: 'provider',
+      populate: {
+        path: 'provider',
+        select: 'fcmToken',
+      },
+    })
+    .lean(); // Use lean for faster, plain JavaScript object result
+
+  const fcmToken = findService?.shop?.provider?.fcmToken;
+  console.log(fcmToken);
+  // Create and send the notification
+  const message = createMessage(
+    'Quote Accepted',
+    'Customer has accepted your quote request. Please check the dashboard for details.',
+    { receiver: findService?.shop?.provider?._id, type: 'quote' },
+  );
+
+  await sendNotification([fcmToken], message);
+
   return result;
 };
+
 // reject quote
 const rejectQuote = async (id: string, body: any) => {
   const result = await Quotes.findByIdAndUpdate(

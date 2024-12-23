@@ -15,6 +15,11 @@ router.post(
   chatController.createChat,
 );
 
+router.get(
+  '/customer/:customer',
+  auth(USER_ROLE.customer, USER_ROLE.provider),
+  chatController.getChatIdByCustomer,
+);
 router.patch(
   '/:id',
   validateRequest(chatValidation.createChatValidation),

@@ -32,6 +32,16 @@ const getChatById = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const getChatIdByCustomer = catchAsync(async (req: Request, res: Response) => {
+  console.log(req.params);
+  const result = await chatService.getChatIdByCustomer(req.params.customer);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Chat retrieved successfully',
+    data: result,
+  });
+});
 
 const updateChat = catchAsync(async (req: Request, res: Response) => {
   const result = await chatService.updateChatList(req.params.id, req.body);
@@ -83,4 +93,5 @@ export const chatController = {
   deleteChat,
   getMyChatListv2,
   getMyChatListv2ForRestApi,
+  getChatIdByCustomer,
 };

@@ -110,6 +110,14 @@ const deleteChatList = async (id: string) => {
   return result;
 };
 
+// get chatId
+
+const getChatIdByCustomer = async (customer: string) => {
+  const result = await Chat.findOne({ participants: { $in: customer } }).select(
+    '_id',
+  );
+  return result;
+};
 // get my all chatlist
 
 const getmychatListv2 = async (userData: any) => {
@@ -272,4 +280,5 @@ export const chatService = {
   updateChatList,
   deleteChatList,
   getmychatListv2,
+  getChatIdByCustomer,
 };

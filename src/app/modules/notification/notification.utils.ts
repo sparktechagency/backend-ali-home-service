@@ -16,9 +16,12 @@ export const sendNotification = async (
   payload: IsendNotification,
 ): Promise<unknown> => {
   console.log('token', fcmToken);
+  console.log(payload);
   try {
     const response = await admin.messaging().sendEachForMulticast({
-      tokens: fcmToken,
+      tokens: [
+        'eKFrnashTtidLpWoZ_eb_e:APA91bGcydmxgPBjl5XmxHG31e-RDs-TKV2wUxlYUzL9JgW0YNsxAJgi9Vk2lYwT4M6IeJOWBhGv06zxq0kxHFRDlZOMInJLWLxnHI30p6JhRjUawmB2UO0',
+      ],
       notification: {
         title: payload.title,
         body: payload.body,
@@ -52,7 +55,7 @@ export const sendNotification = async (
 
     return response;
   } catch (error: any) {
-    console.error('Error sending message:', error);
+    console.dir('Error sending message:', error);
     if (error?.code === 'messaging/third-party-auth-error') {
       return null;
     } else {
