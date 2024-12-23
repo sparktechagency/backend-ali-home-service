@@ -400,7 +400,7 @@ const acceptQuote = async (id: string) => {
     'Customer has accepted your quote request. Please check the dashboard for details.',
     { receiver: findService?.shop?.provider?._id, type: 'quote' },
   );
-
+  console.log(message);
   await sendNotification([fcmToken], message);
 
   return result;

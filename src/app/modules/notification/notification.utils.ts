@@ -19,9 +19,7 @@ export const sendNotification = async (
   console.log(payload);
   try {
     const response = await admin.messaging().sendEachForMulticast({
-      tokens: [
-        'eKFrnashTtidLpWoZ_eb_e:APA91bGcydmxgPBjl5XmxHG31e-RDs-TKV2wUxlYUzL9JgW0YNsxAJgi9Vk2lYwT4M6IeJOWBhGv06zxq0kxHFRDlZOMInJLWLxnHI30p6JhRjUawmB2UO0',
-      ],
+      tokens: fcmToken,
       notification: {
         title: payload.title,
         body: payload.body,
@@ -52,7 +50,16 @@ export const sendNotification = async (
         });
       });
     }
-
+    if (response?.failureCount > 0) {
+      console.log('Some tokens failed:');
+      response.responses.forEach((res, index) => {
+        if (!res.success) {
+          console.error(
+            `Error for token at index ${index}: ${JSON.stringify(res.error)}`,
+          );
+        }
+      });
+    }
     return response;
   } catch (error: any) {
     console.dir('Error sending message:', error);
