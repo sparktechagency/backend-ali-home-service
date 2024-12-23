@@ -9,7 +9,10 @@ const messageSchema = new Schema<IMessages>(
     },
     imageUrl: {
       type: [String],
-      default: null, // default to null if no value is provided
+      default: null, // Default to null if no value is provided
+      set: function (value: any) {
+        return Array.isArray(value) && value.length === 0 ? null : value;
+      },
     },
     seen: {
       type: Boolean,

@@ -115,24 +115,14 @@ const deleteChatList = async (id: string) => {
 const getmychatListv2 = async (userData: any) => {
   const { user, role } = userData;
   console.log('user', user, 'role', role);
-  // Convert `user` to ObjectId
+
+  const populatedModel = role === 'provider' ? 'customers' : 'providers';
+
   const chatList = await Chat.aggregate([
     // Match chats where the user is a participant
     {
       $match: {
-        participants: { $all: [user] },
-      },
-    },
-    // Add a field to convert participant strings to ObjectIds
-    {
-      $addFields: {
-        participantsObjectId: {
-          $map: {
-            input: '$participants',
-            as: 'participant',
-            in: { $toObjectId: '$$participant' },
-          },
-        },
+        participants: { $in: [user] }, // Matches chats with the user as a participant
       },
     },
     // Lookup to find the last message for each chat
@@ -162,8 +152,8 @@ const getmychatListv2 = async (userData: any) => {
           $arrayElemAt: [
             {
               $filter: {
-                input: '$participantsObjectId',
-                cond: { $ne: ['$$this', user] }, // Find the other participant
+                input: '$participants',
+                cond: { $ne: ['$$this', user] }, // Find the other participant (not the logged-in user)
               },
             },
             0,
@@ -171,11 +161,23 @@ const getmychatListv2 = async (userData: any) => {
         },
       },
     },
+    // Convert targetParticipant to ObjectId if necessary
+    {
+      $addFields: {
+        targetParticipantObjectId: {
+          $cond: {
+            if: { $eq: [{ $type: '$targetParticipant' }, 'string'] },
+            then: { $toObjectId: '$targetParticipant' },
+            else: '$targetParticipant',
+          },
+        },
+      },
+    },
     // Lookup data from Customer or Provider based on role
     {
       $lookup: {
-        from: role === 'provider' ? 'customers' : 'providers', // Dynamic collection lookup
-        localField: 'targetParticipant',
+        from: populatedModel, // Dynamic collection lookup
+        localField: 'targetParticipantObjectId',
         foreignField: '_id',
         as: 'participantDetails',
       },
@@ -217,12 +219,21 @@ const getmychatListv2 = async (userData: any) => {
         },
       },
     },
+    // Add debugging fields
+    {
+      $addFields: {
+        debugTargetParticipant: '$targetParticipant',
+        debugObjectIdConversion: '$targetParticipantObjectId',
+        debugParticipantDetails: '$participantDetails',
+      },
+    },
     // Project the desired fields
     {
       $project: {
         _id: 1,
         participants: 1,
         lastMessage: 1,
+        // targetParticipant: 1,
         unreadMessageCount: { $ifNull: ['$unreadMessageCount', 0] }, // Default to 0 if null
         participantDetails: {
           _id: '$participantDetails._id',

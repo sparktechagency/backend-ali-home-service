@@ -239,6 +239,12 @@ const initializeSocketIO = (server: HttpServer) => {
       });
 
       socket.on('send-message', async (payload, callback) => {
+        if (payload?.chat.length !== 24 || payload?.receiver.length !== 24) {
+          throw new AppError(
+            httpStatus.BAD_REQUEST,
+            'invalid chat or receiver',
+          );
+        }
         payload.sender = user?.profileId;
         // --------------------------------------------not needed  -------------------------------
 

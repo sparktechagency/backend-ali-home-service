@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import AppError from '../../error/AppError';
 import { Quotes } from '../quotes/quotes.model';
 import Service from '../services/service.model';
+import { Shop } from '../shop/shop.model';
 import { Ireview } from './review.interface';
 import { Review } from './review.model';
 
@@ -12,46 +13,62 @@ const insertReviewIntoDb = async (payload: Partial<Ireview>) => {
   try {
     session.startTransaction();
 
-    const service = await Service.findById(payload?.service);
-    if (!service) throw new AppError(httpStatus.NOT_FOUND, 'Service not found');
+    const { service: serviceId, rating, quote } = payload;
+    if (!serviceId || !rating) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Invalid payload');
+    }
 
-    // Calculate the new average rating
+    const service = await Service.findById(serviceId).session(session);
+    if (!service) {
+      throw new AppError(httpStatus.NOT_FOUND, 'Service not found');
+    }
+
+    // Calculate the new average rating and total reviews
     const totalReviews = Number(service.totalReviews) || 0;
     const currentAvgRating = Number(service.avgReviews) || 0;
     const newTotalReviews = totalReviews + 1;
-    const newAvgRating =
-      (currentAvgRating * totalReviews + Number(payload?.rating)) /
-      newTotalReviews;
-    // Update the service with the new rating and total reviews
-    const updatedService = await Service.findByIdAndUpdate(
-      payload?.service,
-      {
-        $set: {
-          totalReviews: newTotalReviews,
-          avgReviews: newAvgRating.toFixed(1),
+    const newAvgRating = (
+      (currentAvgRating * totalReviews + Number(rating)) /
+      newTotalReviews
+    ).toFixed(1);
+
+    // Perform updates in parallel
+    const updates = [
+      Service.findByIdAndUpdate(
+        serviceId,
+        {
+          $set: {
+            totalReviews: newTotalReviews,
+            avgReviews: newAvgRating,
+          },
         },
-      },
-      { new: true, session },
-    );
+        { new: true, session },
+      ),
+      Quotes.findByIdAndUpdate(
+        quote,
+        { $set: { isReviewed: true } },
+        { new: true, session },
+      ),
+      Shop.findByIdAndUpdate(
+        service.shop,
+        { $inc: { totalReviews: 1 } },
+        { new: true, session },
+      ),
+    ];
+
+    const [updatedService] = await Promise.all(updates);
 
     if (!updatedService) {
-      throw new AppError(
-        httpStatus.NOT_ACCEPTABLE,
-        'Something went wrong updating service',
-      );
+      throw new AppError(httpStatus.NOT_ACCEPTABLE, 'Error updating service');
     }
 
-    // Update the quote as reviewed
-    await Quotes.findByIdAndUpdate(
-      payload?.quote,
-      { $set: { isReviewed: true } },
-      { new: true, session },
-    );
+    // Create the review
+    const [review] = await Review.create([payload], { session });
 
-    const result = await Review.create([payload], { session });
     await session.commitTransaction();
     await session.endSession();
-    return result[0];
+
+    return review;
   } catch (error) {
     await session.abortTransaction();
     await session.endSession();

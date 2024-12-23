@@ -25,7 +25,7 @@ const hireRequestSchema = new Schema(
     images: [ImageSchema], // Embedding the image schema
     status: {
       type: String,
-      enum: ['pending', 'accepted', 'rejected'],
+      enum: ['pending', 'quote_sent', 'rejected'],
       default: 'pending',
       required: true,
     },

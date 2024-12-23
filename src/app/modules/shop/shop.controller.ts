@@ -70,6 +70,15 @@ const deleteAShop = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const getNearbyShop = catchAsync(async (req: Request, res: Response) => {
+  const result = await shopservices.getNearbyShop(req.query);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Shop retrieved successfully',
+    data: result,
+  });
+});
 
 export const shopController = {
   insertShopintoDb,
@@ -77,5 +86,6 @@ export const shopController = {
   getSingleShop,
   updateAshop,
   deleteAShop,
+  getNearbyShop,
   getmyshop,
 };

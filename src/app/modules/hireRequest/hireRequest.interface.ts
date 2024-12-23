@@ -8,7 +8,7 @@ export interface IhireRequest {
   description: string;
   provider: string;
   images: Iimage[];
-  status: 'pending' | 'accepted' | 'rejected';
+  status: 'pending' | 'quote_sent' | 'rejected';
   priority: 'yes' | 'no';
   isDeleted: boolean;
 }

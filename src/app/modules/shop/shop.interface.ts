@@ -6,6 +6,7 @@ export interface Ishop {
   address: string;
   location: Ilocation;
   helpLineNumber: number;
+  totalReviews?: number;
   name: string;
   license?: string;
   image: Iimage;

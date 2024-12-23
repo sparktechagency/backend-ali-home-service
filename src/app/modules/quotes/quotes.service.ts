@@ -4,14 +4,44 @@ import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../error/AppError';
+import Customer from '../customer/customer.model';
+import HireRequest from '../hireRequest/hireRequest.model';
+import { sendNotification } from '../notification/notification.utils';
 import { quotesSearchabFields } from './quotes.constant';
 import { IQuotes } from './quotes.interface';
 import { Quotes } from './quotes.model';
 
 const insertQuotesintoDb = async (payload: IQuotes) => {
+  // Create a new quote
   const result = await Quotes.create(payload);
+
+  // Fetch the FCM token
+  const customerData = await Customer.findById(result.customer)
+    .select('fcmToken')
+    .lean();
+
+  // Construct the notification message
+  const message = {
+    title: 'New Quote',
+    body: 'A new quote has been provided. Please check the dashboard for details.',
+    data: {
+      receiver: result.customer,
+      type: 'quote',
+    },
+  };
+
+  // Send notification and update hire request concurrently
+  await Promise.all([
+    sendNotification([customerData?.fcmToken as string], message),
+    HireRequest.updateOne(
+      { _id: payload.request },
+      { $set: { status: 'quote_sent' } },
+    ),
+  ]);
+
   return result;
 };
+
 const getProviderWiseQuotes = async (query: Record<string, any>) => {
   const { searchTerm, shop, page: pages, ...others } = query;
   const andCondition: any[] = [];
@@ -342,6 +372,7 @@ const acceptQuote = async (id: string) => {
     { $set: { status: 'accepted' } },
     { new: true },
   );
+
   return result;
 };
 // reject quote

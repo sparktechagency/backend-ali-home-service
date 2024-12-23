@@ -7,9 +7,13 @@ const ShopSchema = new Schema<Ishop, ShopModel>(
     provider: { type: Schema.Types.ObjectId, ref: 'Provider', required: true },
     name: { type: String, required: true },
     address: { type: String, required: true },
+    totalReviews: {
+      type: Number,
+      default: 0,
+    },
     helpLineNumber: { type: Number, required: true },
     location: {
-      coordiantes: [Number],
+      coordinates: [Number],
       type: {
         type: String,
         default: 'Point',
@@ -39,9 +43,9 @@ ShopSchema.pre('findOne', function (next) {
   next();
 });
 
-ShopSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
-  next();
-});
+// ShopSchema.pre('aggregate', function (next) {
+//   this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+//   next();
+// });
 
 export const Shop = model<Ishop, ShopModel>('Shop', ShopSchema);

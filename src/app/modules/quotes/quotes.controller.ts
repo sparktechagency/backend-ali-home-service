@@ -27,7 +27,9 @@ const getProviderWiseQuotes = catchAsync(
   },
 );
 const getAllQuotes = catchAsync(async (req: Request, res: Response) => {
-  const result = await quotesServices.getAllQuotes(req.query);
+  const query = { ...req.query };
+  query['customer'] = req.user.profileId;
+  const result = await quotesServices.getAllQuotes(query);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

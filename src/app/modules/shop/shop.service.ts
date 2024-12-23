@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from 'http-status';
+import { PipelineStage } from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../error/AppError';
 import { Ishop } from './shop.interface';
@@ -16,6 +17,8 @@ const insertShopintoDb = async (payload: Ishop) => {
       'Shop already exist with the same provider.',
     );
   }
+
+  console.log(payload);
 
   const result = await Shop.create(payload);
   return result;
@@ -61,6 +64,33 @@ const deleteShop = async (id: string) => {
   );
   return result;
 };
+const getNearbyShop = async (query: Record<string, any>) => {
+  const pipeline: PipelineStage[] = [];
+  console.log(query);
+  // Add geospatial stage if latitude and longitude are provided
+  if (query?.latitude && query?.longitude) {
+    pipeline.push({
+      $geoNear: {
+        near: {
+          type: 'Point',
+          coordinates: [
+            parseFloat(query?.longitude),
+            parseFloat(query?.latitude),
+          ],
+          // coordinates: [90.42308159679541, 23.77634120911962],
+        },
+        key: 'location',
+        // query: {},
+        maxDistance: parseFloat(5000 as unknown as string) * 1609,
+        distanceField: 'dist.calculated',
+        spherical: true,
+      },
+    });
+  }
+
+  const result = await Shop.aggregate(pipeline);
+  return result;
+};
 
 export const shopservices = {
   insertShopintoDb,
@@ -69,4 +99,5 @@ export const shopservices = {
   deleteShop,
   updateAshop,
   getmyshop,
+  getNearbyShop,
 };

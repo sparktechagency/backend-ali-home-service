@@ -103,6 +103,7 @@ const confirmPayment = async (query: Record<string, any>) => {
         throw new AppError(httpStatus.BAD_REQUEST, 'Something went wrong');
       }
       // Update booking route status to "paid"
+      //  10 ehd to 1 coin
       const updateQuote = await Quotes.findByIdAndUpdate(
         quote,
         { isPaid: true, status: QuotestatusEnum.COMPLETED },
@@ -113,9 +114,7 @@ const confirmPayment = async (query: Record<string, any>) => {
       }
 
       if (Number(PaymentSession?.amount_total) / 100 >= 30) {
-        const coinsToAdd = Math.floor(
-          Number(PaymentSession?.amount_total) / 100 / 10,
-        );
+        const coinsToAdd = Math.floor(Number(updateQuote?.fee) / 10);
         await Coin.findOneAndUpdate(
           { customer: updateQuote?.customer },
           {
@@ -274,6 +273,24 @@ const completePaymentByHandCash = async (payload: any) => {
 
       { session },
     );
+    if (Number(updateQuote?.fee) >= 30) {
+      const coinsToAdd = Math.floor(Number(updateQuote?.fee) / 10);
+      console.log(updateQuote?.customer);
+      const coin = await Coin.findOneAndUpdate(
+        { customer: updateQuote?.customer },
+        {
+          $inc: {
+            coins: coinsToAdd,
+          },
+        },
+        {
+          session,
+          upsert: true, // Insert a new document if one doesn't exist
+          new: true, // Return the modified document (after the update/insert)
+        },
+      );
+    }
+
     // Create a payment record
     const result = await Payment.create(
       [
@@ -308,7 +325,11 @@ const completePaymentByHandCash = async (payload: any) => {
             coins: coinsToAdd,
           },
         },
-        { session },
+        {
+          session,
+          upsert: true, // Insert a new document if one doesn't exist
+          new: true,
+        }, // Return the modified document (after the update/insert) },
       );
     }
     // Commit the transaction

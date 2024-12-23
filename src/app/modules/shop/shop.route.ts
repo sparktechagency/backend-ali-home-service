@@ -13,7 +13,7 @@ router.post(
   '/',
   upload.single('file'),
   parseData(),
-  auth(USER_ROLE.admin, USER_ROLE.provider),
+  // auth(USER_ROLE.admin, USER_ROLE.provider),
   validateRequest(shopValidation.InsertShopSchema),
   shopController.insertShopintoDb,
 );
@@ -26,6 +26,16 @@ router.get(
     USER_ROLE.employee,
   ),
   shopController.getAllShops,
+);
+router.get(
+  '/nearby-shop',
+  auth(
+    USER_ROLE.admin,
+    USER_ROLE.provider,
+    USER_ROLE.customer,
+    USER_ROLE.employee,
+  ),
+  shopController.getNearbyShop,
 );
 router.get(
   '/my-shop',
@@ -42,6 +52,7 @@ router.get(
   ),
   shopController.getSingleShop,
 );
+
 router.patch(
   '/:id',
   upload.single('file'),
