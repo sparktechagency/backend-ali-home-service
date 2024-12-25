@@ -14,7 +14,7 @@ router.post(
   upload.single('file'),
   parseData(),
   validateRequest(categoryValidation.insertCategorySchema),
-  // auth(USER_ROLE.sup_admin, USER_ROLE.admin),
+  auth(USER_ROLE.sup_admin, USER_ROLE.admin),
   categoryControllers.insertCategoryIntoDb,
 );
 

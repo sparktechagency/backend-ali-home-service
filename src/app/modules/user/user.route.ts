@@ -22,6 +22,7 @@ router.post(
   '/create-provider',
   upload.single('file'),
   parseData(),
+  auth(USER_ROLE.sup_admin),
   userControllers.insertProviderintoDb,
 );
 router.post(

@@ -13,7 +13,7 @@ router.post(
   '/',
   upload.single('file'),
   parseData(),
-  // auth(USER_ROLE.admin, USER_ROLE.provider),
+  auth(USER_ROLE.sup_admin, USER_ROLE.provider),
   validateRequest(shopValidation.InsertShopSchema),
   shopController.insertShopintoDb,
 );
