@@ -55,6 +55,11 @@ router.patch(
   quotesController.acceptQuote,
 );
 router.patch(
+  '/complete/:id',
+  auth(USER_ROLE.customer, USER_ROLE.provider, USER_ROLE.employee),
+  quotesController.acceptQuote,
+);
+router.patch(
   '/reject/:id',
   auth(USER_ROLE.customer, USER_ROLE.provider, USER_ROLE.employee),
   quotesController.rejectQuote,

@@ -530,7 +530,14 @@ const acceptCompletationRequest = async (payload: any) => {
 const openPaymentPopup = async () => {
   return {};
 };
-
+const completeQuote = async (id: string, body: any) => {
+  const result = await Quotes.findByIdAndUpdate(
+    id,
+    { $set: { status: 'completed' } },
+    { new: true },
+  );
+  return result;
+};
 export const quotesServices = {
   insertQuotesintoDb,
   getAllQuotes,
@@ -543,4 +550,5 @@ export const quotesServices = {
   acceptCompletationRequest,
   getQuotesStatusSummary,
   openPaymentPopup,
+  completeQuote,
 };

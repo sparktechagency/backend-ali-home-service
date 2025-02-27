@@ -15,7 +15,7 @@ const priceDetailsSchema = z.object({
       max: z.number(),
     })
     .optional(),
-  fixedPrice: z.number().optional(),
+  fixedPrice: z.number().nullable().optional(),
 });
 
 // Zod schema for inserting a service (required fields)

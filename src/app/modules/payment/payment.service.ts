@@ -68,7 +68,6 @@ const insertPaymentIntoDb = async (payload: Ipayment) => {
 };
 
 const checkout = async (payload: any) => {
-  console.log('payload', payload);
   const result = await createCheckoutSession(payload);
   return result;
 };
@@ -106,7 +105,7 @@ const confirmPayment = async (query: Record<string, any>) => {
       //  10 ehd to 1 coin
       const updateQuote = await Quotes.findByIdAndUpdate(
         quote,
-        { isPaid: true, status: QuotestatusEnum.COMPLETED },
+        { isPaid: true, status: QuotestatusEnum.ACCEPTED },
         { session },
       );
       if (!updateQuote) {
@@ -269,14 +268,14 @@ const completePaymentByHandCash = async (payload: any) => {
     session.startTransaction();
     const updateQuote: any = await Quotes.findByIdAndUpdate(
       payload?.quote,
-      { isPaid: true, status: QuotestatusEnum.COMPLETED },
+      { isPaid: true, status: QuotestatusEnum.ACCEPTED },
 
       { session },
     );
     if (Number(updateQuote?.fee) >= 30) {
       const coinsToAdd = Math.floor(Number(updateQuote?.fee) / 10);
-      console.log(updateQuote?.customer);
-      const coin = await Coin.findOneAndUpdate(
+
+      await Coin.findOneAndUpdate(
         { customer: updateQuote?.customer },
         {
           $inc: {
