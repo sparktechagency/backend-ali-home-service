@@ -9,7 +9,7 @@ import Customer from '../customer/customer.model';
 import HireRequest from '../hireRequest/hireRequest.model';
 import { sendNotification } from '../notification/notification.utils';
 import Service from '../services/service.model';
-import { quotesSearchabFields } from './quotes.constant';
+import { quotesSearchabFields, QuotestatusEnum } from './quotes.constant';
 import { IQuotes } from './quotes.interface';
 import { Quotes } from './quotes.model';
 
@@ -510,14 +510,12 @@ const getQuotesStatusSummary = async (query: Record<string, any>) => {
 
 const acceptCompletationRequest = async (payload: any) => {
   const findQuote = await Quotes.findById(payload?.quote).select('customer');
-
   if (findQuote?.customer.toString() !== payload?.customer) {
     throw new AppError(
       httpStatus.NOT_ACCEPTABLE,
       'You are not a valid customer to scan the QR code.',
     );
   }
-
   const result = await Quotes.findByIdAndUpdate(
     payload?.quote,
     // it should be iscustomer accept
@@ -533,7 +531,7 @@ const openPaymentPopup = async () => {
 const completeQuote = async (id: string, body: any) => {
   const result = await Quotes.findByIdAndUpdate(
     id,
-    { $set: { status: 'completed' } },
+    { $set: { status: QuotestatusEnum.COMPLETED } },
     { new: true },
   );
   return result;
