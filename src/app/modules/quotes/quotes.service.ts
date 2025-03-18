@@ -507,6 +507,7 @@ const getQuotesStatusSummary = async (query: Record<string, any>) => {
 // accetpcompletation offer
 
 const acceptCompletationRequest = async (payload: any) => {
+  console.log(payload);
   // that need to be updated later
   // const findQuote = await Quotes.findById(payload?.quote).select('customer');
   // if (findQuote?.customer.toString() !== payload?.customer) {
@@ -518,7 +519,7 @@ const acceptCompletationRequest = async (payload: any) => {
   const result = await Quotes.findByIdAndUpdate(
     payload?.quote,
     // it should be iscustomer accept
-    { isProviderAccept: true },
+    { isProviderAccept: true, status: QuotestatusEnum.COMPLETED },
     { new: true },
   );
   return result;
@@ -533,6 +534,7 @@ const completeQuote = async (id: string, body: any) => {
     { $set: { status: QuotestatusEnum.COMPLETED } },
     { new: true },
   );
+
   return result;
 };
 export const quotesServices = {
