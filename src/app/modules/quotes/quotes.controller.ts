@@ -96,6 +96,15 @@ const acceptCompletationRequest = catchAsync(
     });
   },
 );
+const completeQuote = catchAsync(async (req: Request, res: Response) => {
+  const result = await quotesServices.completeQuote(req.params.id, req.body);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Quotes rejected successfully',
+    data: result,
+  });
+});
 const getQuotesStatusSummary = catchAsync(
   async (req: Request, res: Response) => {
     const query = { ...req.query };

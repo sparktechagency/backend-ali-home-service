@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
-import AppError from '../../error/AppError';
 import { createMessage } from '../../utils/message';
 import Customer from '../customer/customer.model';
 import HireRequest from '../hireRequest/hireRequest.model';
@@ -509,13 +507,14 @@ const getQuotesStatusSummary = async (query: Record<string, any>) => {
 // accetpcompletation offer
 
 const acceptCompletationRequest = async (payload: any) => {
-  const findQuote = await Quotes.findById(payload?.quote).select('customer');
-  if (findQuote?.customer.toString() !== payload?.customer) {
-    throw new AppError(
-      httpStatus.NOT_ACCEPTABLE,
-      'You are not a valid customer to scan the QR code.',
-    );
-  }
+  // that need to be updated later
+  // const findQuote = await Quotes.findById(payload?.quote).select('customer');
+  // if (findQuote?.customer.toString() !== payload?.customer) {
+  //   throw new AppError(
+  //     httpStatus.NOT_ACCEPTABLE,
+  //     'You are not a valid customer to scan the QR code.',
+  //   );
+  // }
   const result = await Quotes.findByIdAndUpdate(
     payload?.quote,
     // it should be iscustomer accept
