@@ -16,10 +16,7 @@ const insertQuotesintoDb = async (payload: IQuotes) => {
   const result = await Quotes.create(payload);
 
   //
-  await HireRequest.updateOne(
-    { _id: payload.request },
-    { $set: { isDeleted: true } },
-  );
+
   // Fetch the FCM token
   const customerData = await Customer.findById(result.customer)
     .select('fcmToken')
@@ -40,7 +37,7 @@ const insertQuotesintoDb = async (payload: IQuotes) => {
     sendNotification([customerData?.fcmToken as string], message),
     HireRequest.updateOne(
       { _id: payload.request },
-      { $set: { status: 'quote_sent' } },
+      { $set: { status: 'quote_sent', isDeleted: true } },
     ),
   ]);
 
