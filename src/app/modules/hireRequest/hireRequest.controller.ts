@@ -53,6 +53,7 @@ const getAllHireRequests = catchAsync(async (req: Request, res: Response) => {
     ...(req.user.role === USER_ROLE.customer && {
       customer: req.user.profileId,
     }),
+    isDeleted: false,
   };
 
   const result = await hirRequestServices.getAllHireRequests(query);

@@ -15,6 +15,11 @@ const insertQuotesintoDb = async (payload: IQuotes) => {
   // Create a new quote
   const result = await Quotes.create(payload);
 
+  //
+  await HireRequest.updateOne(
+    { _id: payload.request },
+    { $set: { isDeleted: true } },
+  );
   // Fetch the FCM token
   const customerData = await Customer.findById(result.customer)
     .select('fcmToken')

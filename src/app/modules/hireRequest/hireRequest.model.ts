@@ -43,20 +43,20 @@ const hireRequestSchema = new Schema(
   { timestamps: true },
 );
 
-hireRequestSchema.pre('find', function (next) {
-  this.find({ isDeleted: { $ne: true } });
-  next();
-});
+// hireRequestSchema.pre('find', function (next) {
+//   this.find({ isDeleted: { $ne: true } });
+//   next();
+// });
 
-hireRequestSchema.pre('findOne', function (next) {
-  this.find({ isDeleted: { $ne: true } });
-  next();
-});
+// hireRequestSchema.pre('findOne', function (next) {
+//   this.find({ isDeleted: { $ne: true } });
+//   next();
+// });
 
-hireRequestSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
-  next();
-});
+// hireRequestSchema.pre('aggregate', function (next) {
+//   this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+//   next();
+// });
 
 const HireRequest = model('HireRequest', hireRequestSchema);
 

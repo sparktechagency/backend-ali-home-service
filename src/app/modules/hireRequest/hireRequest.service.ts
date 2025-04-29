@@ -27,7 +27,7 @@ const insertHireRequestIntoDb = async (payload: IhireRequest) => {
     const isChatExist = await Chat.findOne({
       participants: { $all: [payload.provider, payload.customer] },
     });
-    console.log('isChatExist', isChatExist);
+
     if (!isChatExist) {
       const newChat = await Chat.create(
         [
