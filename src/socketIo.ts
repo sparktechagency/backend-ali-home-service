@@ -36,6 +36,7 @@ const initializeSocketIO = (server: HttpServer) => {
       //----------------------user token get from front end-------------------------//
       const token =
         socket.handshake.auth?.token || socket.handshake.headers?.token;
+      console.log(token, 'token from socket io');
       //----------------------check Token and return user details-------------------------//
       const user: any = await getUserDetailsFromToken(token);
 
@@ -60,7 +61,6 @@ const initializeSocketIO = (server: HttpServer) => {
 
       //----------------------user details and messages send for front end -->(as need to use)------------------------//
       socket.on('message-page', async ({ receiverId }, callback) => {
-        console.log(receiverId);
         if (!receiverId) {
           callbackFn(callback, {
             success: false,
@@ -239,7 +239,6 @@ const initializeSocketIO = (server: HttpServer) => {
       });
 
       socket.on('send-message', async (payload, callback) => {
-        console.log(payload);
         if (payload?.chat.length !== 24 || payload?.receiver.length !== 24) {
           throw new AppError(
             httpStatus.BAD_REQUEST,

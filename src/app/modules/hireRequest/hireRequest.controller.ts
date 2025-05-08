@@ -4,6 +4,7 @@ import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import { uploadManyToS3 } from '../../utils/fileHelper';
 import sendResponse from '../../utils/sendResponse';
+import { QuotestatusEnum } from '../quotes/quotes.constant';
 import { USER_ROLE } from '../user/user.constant';
 import { hirRequestServices } from './hireRequest.service';
 
@@ -33,10 +34,13 @@ const insertHireRequestIntoDb = catchAsync(
 );
 // provider
 const getAllMyHireRequest = catchAsync(async (req: Request, res: Response) => {
-  const result = await hirRequestServices.getAllMyHireRequest({
-    profileId: req.user.profileId,
+  const query = {
     ...req.query,
-  });
+    isDeleted: false,
+    status: QuotestatusEnum.PENDING,
+    profileId: req.user.profileId,
+  };
+  const result = await hirRequestServices.getAllMyHireRequest(query);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

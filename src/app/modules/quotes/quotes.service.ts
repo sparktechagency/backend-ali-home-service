@@ -152,6 +152,14 @@ const getProviderWiseQuotes = async (query: Record<string, any>) => {
         as: 'customerDetails', // Get customer details
       },
     },
+    // {
+    //   $lookup: {
+    //     from: 'hirerequests', // Lookup in 'customers' collection
+    //     localField: 'request', // Reference customer field from quotes
+    //     foreignField: '_id', // Match customer by ID
+    //     as: 'hireRequestDetails', // Get customer details
+    //   },
+    // },
     {
       $unwind: {
         path: '$customerDetails',
@@ -257,6 +265,7 @@ const getProviderWiseQuotes = async (query: Record<string, any>) => {
         category: '$categoryDetails.title',
         image: '$categoryDetails.image.url',
         service: '$serviceDetails._id',
+        // hireRequest: '$hireRequestDetails',
         fee: 1,
         date: 1,
         status: 1,
