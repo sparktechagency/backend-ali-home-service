@@ -286,10 +286,16 @@ const getSingleHireReuqest = async (id: string) => {
     })
     .populate({
       path: 'service',
-      populate: {
-        path: 'category',
-        select: 'title',
-      },
+      populate: [
+        {
+          path: 'category',
+          select: 'title',
+        },
+        {
+          path: 'shop',
+          select: 'name address location _id image',
+        },
+      ],
     });
   return result;
 };

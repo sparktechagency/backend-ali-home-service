@@ -11,7 +11,7 @@ const hireRequestSchema = new Schema(
     },
     service: {
       type: Schema.Types.ObjectId,
-      ref: 'Service', // Replace with the actual service model
+      ref: 'Service',
       required: true,
     },
     address: {
@@ -22,7 +22,7 @@ const hireRequestSchema = new Schema(
       type: String,
       required: true,
     },
-    images: [ImageSchema], // Embedding the image schema
+    images: [ImageSchema],
     status: {
       type: String,
       enum: ['pending', 'quote_sent', 'rejected'],
@@ -35,6 +35,11 @@ const hireRequestSchema = new Schema(
       default: 'no',
       required: true,
     },
+    rejectionReason: {
+      type: String,
+      default: '',
+    },
+
     isDeleted: {
       type: Boolean,
       default: false,

@@ -417,9 +417,10 @@ const acceptQuote = async (id: string) => {
 
 // reject quote
 const rejectQuote = async (id: string, body: any) => {
+  console.log(id);
   const result = await Quotes.findByIdAndUpdate(
     id,
-    { $set: { status: 'rejected', rejectionReason: body.rejectionReason } },
+    { $set: { status: 'rejected', rejectionReason: body?.rejectionReason } },
     { new: true },
   );
   return result;
