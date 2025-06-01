@@ -26,6 +26,9 @@ const initializeSocketIO = (server: HttpServer) => {
     },
   });
 
+  // await pub.connect();
+  // await sub.connect();
+
   // Online users
   const onlineUser = new Set();
 

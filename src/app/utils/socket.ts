@@ -1,4 +1,3 @@
-import { ObjectId } from 'mongodb';
 import { io } from '../../server';
 
 export const emitMessage = (key: string, data: any) => {

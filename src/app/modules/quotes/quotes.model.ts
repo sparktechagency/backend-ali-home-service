@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+import { USER_ROLE } from '../user/user.constant';
 import { IQuotes } from './quotes.interface';
 
 const QuotesSchema = new Schema<IQuotes>(
@@ -40,6 +41,19 @@ const QuotesSchema = new Schema<IQuotes>(
       enum: ['pending', 'accepted', 'rejected', 'completed', 'canceled'],
       required: true,
       default: 'pending',
+    },
+    cancellation: {
+      cancelledBy: {
+        type: String,
+        enum: [USER_ROLE.provider, USER_ROLE.customer],
+      },
+      reason: {
+        type: String,
+      },
+      cancelledAt: {
+        type: Date,
+        default: new Date(),
+      },
     },
     isPaid: {
       type: Boolean,

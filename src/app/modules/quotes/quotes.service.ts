@@ -426,10 +426,15 @@ const rejectQuote = async (id: string, body: any) => {
   return result;
 };
 // reject quote
-const cancelledQuote = async (id: string) => {
+const cancelledQuote = async (id: string, cancellation: any) => {
   const result = await Quotes.findByIdAndUpdate(
     id,
-    { $set: { status: 'canceled' } },
+    {
+      $set: {
+        status: 'canceled',
+        cancellation: cancellation,
+      },
+    },
     { new: true },
   );
   return result;

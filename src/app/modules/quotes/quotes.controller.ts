@@ -75,7 +75,15 @@ const rejectQuote = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const cancelledQuote = catchAsync(async (req: Request, res: Response) => {
-  const result = await quotesServices.rejectQuote(req.params.id, req.body);
+  const { role } = req.user;
+  const cancellation = {
+    ...req.body.cancellation,
+    cancelledBy: role,
+  };
+  const result = await quotesServices.cancelledQuote(
+    req.params.id,
+    cancellation,
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

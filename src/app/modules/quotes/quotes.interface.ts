@@ -11,6 +11,11 @@ export interface IQuotes {
   employee: ObjectId;
   isPaid: boolean;
   paymentGateway: 'cash' | 'online';
+  cancellation?: {
+    cancelledBy: 'customer' | 'provider';
+    cancelledReason: string;
+    cancelledAt: Date;
+  };
   isProviderAccept?: boolean;
   isDeleted: boolean;
   status: 'pending' | 'accepted' | 'rejected' | 'completed' | 'canceled';
