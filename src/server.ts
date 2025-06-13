@@ -2,6 +2,7 @@ import { Server, createServer } from 'http';
 import mongoose from 'mongoose';
 import app from './app';
 import config from './app/config';
+import redisServer from './redis';
 import initializeSocketIO from './socketIo';
 let server: Server;
 export const io = initializeSocketIO(createServer(app));
@@ -15,6 +16,8 @@ async function main() {
     });
     io.listen(Number(config.socket_port));
     console.log(`Socket is listening on port ${config.socket_port}`);
+    // connect redis
+    redisServer();
   } catch (err) {
     console.log(err);
   }

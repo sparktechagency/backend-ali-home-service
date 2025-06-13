@@ -18,6 +18,7 @@ import Message from './app/modules/messages/messages.models';
 import { Provider } from './app/modules/provider/provider.model';
 import { UserRole } from './app/modules/user/user.interface';
 import { callbackFn } from './app/utils/CallbackFn';
+import { redis } from './redis';
 
 const initializeSocketIO = (server: HttpServer) => {
   const io = new Server(server, {
@@ -121,11 +122,18 @@ const initializeSocketIO = (server: HttpServer) => {
       //----------------------chat list------------------------//
       socket.on('my-chat-list', async (data, callback) => {
         try {
-          const chatList = await chatService.getmychatListv2({
-            user: user?.profileId,
-            role: user?.role,
-          });
-          const myChat = 'chat-list::' + user?.profileId;
+          // redis cache can be used here to store chat list
+          const cacheKey = `chat-list::${user?.profileId}`;
+          let chatList: any | null = await redis.get(cacheKey);
+          if (!chatList) {
+            chatList = await chatService.getmychatListv2({
+              user: user?.profileId,
+              role: user?.role,
+            });
+            await redis.set(cacheKey, JSON.stringify(chatList), 'EX', 60);
+          } else {
+            chatList = JSON.parse(chatList);
+          }
 
           const chatDetails = {
             statusCode: 200,
@@ -133,7 +141,7 @@ const initializeSocketIO = (server: HttpServer) => {
             message: 'chat retrived successfully!',
             data: chatList,
           };
-          io.emit(myChat, chatDetails);
+          io.emit(cacheKey, chatDetails);
 
           callbackFn(callback, { success: true, data: chatList });
         } catch (error: any) {
@@ -241,6 +249,98 @@ const initializeSocketIO = (server: HttpServer) => {
         }
       });
 
+      // socket.on('send-message', async (payload, callback) => {
+      //   if (payload?.chat.length !== 24 || payload?.receiver.length !== 24) {
+      //     throw new AppError(
+      //       httpStatus.BAD_REQUEST,
+      //       'invalid chat or receiver',
+      //     );
+      //   }
+      //   payload.sender = user?.profileId;
+      //   // --------------------------------------------not needed s  -------------------------------
+
+      //   // const payload  ={
+      //   //   receiver:"",
+      //   //   text:"",
+      //   //   image:"",
+      //   //   chat:"chatId"
+      //   // }
+
+      //   // --------------------------
+      //   const result = await Message.create(payload);
+
+      //   if (!result) {
+      //     callbackFn(callback, {
+      //       statusCode: httpStatus.BAD_REQUEST,
+      //       success: false,
+      //       message: 'Message sent failed',
+      //     });
+      //   }
+
+      //   const senderMessage = 'new-message::' + result.chat.toString();
+      //   // need to handle from frontend developer
+      //   io.emit(senderMessage, result);
+
+      //   // //----------------------ChatList------------------------//
+      //   // const ChatListSender = await chatService.getMyChatList(
+      //   //   result?.sender.toString(),
+      //   // );
+      //   // 🚀 Invalidate Redis chat list cache
+      //   await redis.del(`chat-list:${result.sender}`);
+      //   await redis.del(`chat-list:${result.receiver}`);
+      //   const ChatListSender = await chatService.getmychatListv2({
+      //     user: result?.sender,
+      //     role: user?.role,
+      //   });
+      //   const chatDetailsSender = {
+      //     statusCode: 200,
+      //     success: true,
+      //     message: 'chat retrived successfully!',
+      //     data: ChatListSender,
+      //   };
+      //   const senderChat = 'chat-list::' + result.sender.toString();
+      //   io.emit(senderChat, chatDetailsSender);
+      //   const ChatListReceiver = await chatService.getmychatListv2({
+      //     user: result?.receiver,
+      //     role:
+      //       user?.role === UserRole.provider
+      //         ? UserRole.customer
+      //         : UserRole.provider,
+      //   });
+      //   const chatDetailsReceiver = {
+      //     statusCode: 200,
+      //     success: true,
+      //     message: 'chat retrived successfully!',
+      //     data: ChatListReceiver,
+      //   };
+      //   const receiverChat = 'chat-list::' + result.receiver.toString();
+      //   io.emit(receiverChat, chatDetailsReceiver);
+
+      //   // Notification
+      //   // const allUnReaddMessage = await Message.countDocuments({
+      //   //   receiver: result.sender,
+      //   //   seen: false,
+      //   // });
+      //   // const variable = 'new-notifications::' + result.sender;
+      //   // io.emit(variable, allUnReaddMessage);
+      //   // const allUnReaddMessage2 = await Message.countDocuments({
+      //   //   receiver: result.receiver,
+      //   //   seen: false,
+      //   // });
+      //   // const variable2 = 'new-notifications::' + result.receiver;
+      //   // io.emit(variable2, allUnReaddMessage2);
+
+      //   //end Notification//
+      //   callbackFn(callback, {
+      //     statusCode: httpStatus.OK,
+      //     success: true,
+      //     message: 'Message sent successfully!',
+      //     data: result,
+      //   });
+      // });
+
+      //-----------------------Typing------------------------//
+
       socket.on('send-message', async (payload, callback) => {
         if (payload?.chat.length !== 24 || payload?.receiver.length !== 24) {
           throw new AppError(
@@ -248,79 +348,70 @@ const initializeSocketIO = (server: HttpServer) => {
             'invalid chat or receiver',
           );
         }
+
         payload.sender = user?.profileId;
-        // --------------------------------------------not needed s  -------------------------------
 
-        // const payload  ={
-        //   receiver:"",
-        //   text:"",
-        //   image:"",
-        //   chat:"chatId"
-        // }
-
-        // --------------------------
         const result = await Message.create(payload);
-
         if (!result) {
-          callbackFn(callback, {
+          return callbackFn(callback, {
             statusCode: httpStatus.BAD_REQUEST,
             success: false,
             message: 'Message sent failed',
           });
         }
 
+        // Emit message to chat room
         const senderMessage = 'new-message::' + result.chat.toString();
-        // need to handle from frontend developer
         io.emit(senderMessage, result);
 
-        // //----------------------ChatList------------------------//
-        // const ChatListSender = await chatService.getMyChatList(
-        //   result?.sender.toString(),
+        // 🚀 Invalidate Redis chat list cache
+        await redis.del(`chat-list:${result.sender}`);
+        await redis.del(`chat-list:${result.receiver}`);
+
+        // 🔄 Optional: Eagerly refresh and emit updated chat list if you want real-time update
+        // But you can skip this if frontend pulls it on reconnect or event
+        // const [chatListSender, chatListReceiver] = await Promise.all([
+        //   chatService.getmychatListv2({
+        //     user: result?.sender,
+        //     role: user?.role,
+        //   }),
+        //   chatService.getmychatListv2({
+        //     user: result?.receiver,
+        //     role:
+        //       user?.role === UserRole.provider
+        //         ? UserRole.customer
+        //         : UserRole.provider,
+        //   }),
+        // ]);
+
+        // Store in Redis for next access
+        // await redis.set(
+        //   `chat-list:${result.sender}`,
+        //   JSON.stringify(chatListSender),
+        //   'EX',
+        //   60,
         // );
-        const ChatListSender = await chatService.getmychatListv2({
-          user: result?.sender,
-          role: user?.role,
-        });
-        const chatDetailsSender = {
-          statusCode: 200,
-          success: true,
-          message: 'chat retrived successfully!',
-          data: ChatListSender,
-        };
-        const senderChat = 'chat-list::' + result.sender.toString();
-        io.emit(senderChat, chatDetailsSender);
-        const ChatListReceiver = await chatService.getmychatListv2({
-          user: result?.receiver,
-          role:
-            user?.role === UserRole.provider
-              ? UserRole.customer
-              : UserRole.provider,
-        });
-        const chatDetailsReceiver = {
-          statusCode: 200,
-          success: true,
-          message: 'chat retrived successfully!',
-          data: ChatListReceiver,
-        };
-        const receiverChat = 'chat-list::' + result.receiver.toString();
-        io.emit(receiverChat, chatDetailsReceiver);
+        // await redis.set(
+        //   `chat-list:${result.receiver}`,
+        //   JSON.stringify(chatListReceiver),
+        //   'EX',
+        //   60,
+        // );
 
-        // Notification
-        // const allUnReaddMessage = await Message.countDocuments({
-        //   receiver: result.sender,
-        //   seen: false,
+        // io.emit('chat-list::' + result.sender, {
+        //   statusCode: 200,
+        //   success: true,
+        //   message: 'chat retrived successfully!',
+        //   data: chatListSender,
         // });
-        // const variable = 'new-notifications::' + result.sender;
-        // io.emit(variable, allUnReaddMessage);
-        // const allUnReaddMessage2 = await Message.countDocuments({
-        //   receiver: result.receiver,
-        //   seen: false,
+        // io.emit('chat-list::' + result.receiver, {
+        //   statusCode: 200,
+        //   success: true,
+        //   message: 'chat retrived successfully!',
+        //   data: chatListReceiver,
         // });
-        // const variable2 = 'new-notifications::' + result.receiver;
-        // io.emit(variable2, allUnReaddMessage2);
 
-        //end Notification//
-        callbackFn(callback, {
+        return callbackFn(callback, {
           statusCode: httpStatus.OK,
           success: true,
           message: 'Message sent successfully!',
@@ -328,7 +419,6 @@ const initializeSocketIO = (server: HttpServer) => {
         });
       });
 
-      //-----------------------Typing------------------------//
       socket.on('typing', function (payload) {
         const chat = payload?.chat.toString();
         const message = payload?.userName + ' is typing...';

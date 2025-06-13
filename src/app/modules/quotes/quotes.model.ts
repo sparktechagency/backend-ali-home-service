@@ -38,7 +38,7 @@ const QuotesSchema = new Schema<IQuotes>(
     },
     status: {
       type: String,
-      enum: ['pending', 'accepted', 'rejected', 'completed', 'canceled'],
+      enum: ['pending', 'accepted', 'rejected', 'completed', 'cancelled'],
       required: true,
       default: 'pending',
     },

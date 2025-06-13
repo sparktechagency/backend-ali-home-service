@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import moment from 'moment';
 import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { createMessage } from '../../utils/message';
@@ -265,6 +266,7 @@ const getProviderWiseQuotes = async (query: Record<string, any>) => {
         category: '$categoryDetails.title',
         image: '$categoryDetails.image.url',
         service: '$serviceDetails._id',
+        cancellation: 1,
         // hireRequest: '$hireRequestDetails',
         fee: 1,
         date: 1,
@@ -427,11 +429,22 @@ const rejectQuote = async (id: string, body: any) => {
 };
 // reject quote
 const cancelledQuote = async (id: string, cancellation: any) => {
+  const findQuote = await Quotes.findById(id);
+  console.log(findQuote);
+  const createdAt = moment(
+    (findQuote as IQuotes & { createdAt?: Date })?.createdAt,
+  );
+  const now = moment();
+  const diffHours = now.diff(createdAt, 'hours');
+
+  if (diffHours >= 6) {
+    throw new Error('You cannot cancel this quote within 6 hours of creation.');
+  }
   const result = await Quotes.findByIdAndUpdate(
     id,
     {
       $set: {
-        status: 'canceled',
+        status: 'cancelled',
         cancellation: cancellation,
       },
     },
