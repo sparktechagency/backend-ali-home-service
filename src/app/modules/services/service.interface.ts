@@ -21,5 +21,6 @@ export interface Iservice {
   avgReviews: number;
   images: Iimage[];
   isDeleted: boolean;
+  isVisible: boolean;
 }
 export interface ServiceModel extends Model<Iservice> {}

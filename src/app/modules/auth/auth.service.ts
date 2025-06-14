@@ -19,7 +19,6 @@ import { TchangePassword, Tlogin, TresetPassword } from './auth.interface';
 import { createToken, verifyToken } from './auth.utils';
 
 const login = async (payload: Tlogin) => {
-  console.log(payload);
   const user = await User.isUserExistByNumber(
     payload?.countryCode as string,
     payload?.phoneNumber as string,

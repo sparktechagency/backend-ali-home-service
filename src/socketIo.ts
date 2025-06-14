@@ -134,7 +134,7 @@ const initializeSocketIO = (server: HttpServer) => {
           } else {
             chatList = JSON.parse(chatList);
           }
-
+ 
           const chatDetails = {
             statusCode: 200,
             success: true,

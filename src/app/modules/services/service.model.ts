@@ -32,6 +32,7 @@ const ServiceSchema = new Schema<Iservice>(
     description: { type: String, required: true },
     duration: { type: Number, required: true },
     isDeleted: { type: Boolean, default: false },
+    isVisible: { type: Boolean, default: true },
   },
   {
     timestamps: true,
@@ -39,5 +40,19 @@ const ServiceSchema = new Schema<Iservice>(
 );
 
 const Service = model<Iservice>('Service', ServiceSchema);
+ServiceSchema.pre('find', function (next) {
+  this.find({ isVisible: { $ne: false } });
+  next();
+});
+
+ServiceSchema.pre('findOne', function (next) {
+  this.find({ isVisible: { $ne: false } });
+  next();
+});
+
+ServiceSchema.pre('aggregate', function (next) {
+  this.pipeline().unshift({ $match: { isVisible: { $ne: false } } });
+  next();
+});
 
 export default Service;
