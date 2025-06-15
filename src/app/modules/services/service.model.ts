@@ -40,19 +40,19 @@ const ServiceSchema = new Schema<Iservice>(
 );
 
 const Service = model<Iservice>('Service', ServiceSchema);
-ServiceSchema.pre('find', function (next) {
-  this.find({ isVisible: { $ne: false } });
-  next();
-});
+// ServiceSchema.pre('find', function (next) {
+//   this.find({ isVisible: { $ne: false } });
+//   next();
+// });
 
-ServiceSchema.pre('findOne', function (next) {
-  this.find({ isVisible: { $ne: false } });
-  next();
-});
+// ServiceSchema.pre('findOne', function (next) {
+//   this.find({ isVisible: { $ne: false } });
+//   next();
+// });
 
-ServiceSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { isVisible: { $ne: false } } });
-  next();
-});
+// ServiceSchema.pre('aggregate', function (next) {
+//   this.pipeline().unshift({ $match: { isVisible: { $ne: false } } });
+//   next();
+// });
 
 export default Service;

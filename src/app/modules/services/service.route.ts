@@ -29,9 +29,9 @@ router.patch(
   '/:id',
   upload.fields([{ name: 'files', maxCount: 5 }]),
   parseData(),
-  validateRequest(serviceValidation.UpdateserviceSchema),
+  // validateRequest(serviceValidation.UpdateserviceSchema),
   auth(USER_ROLE.provider, USER_ROLE.employee),
-  ServiceController.InserServiceIntodb,
+  ServiceController.updateService,
 );
 
 export const serviceRoutes = router;

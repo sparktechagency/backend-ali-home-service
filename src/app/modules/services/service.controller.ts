@@ -32,7 +32,9 @@ const InserServiceIntodb = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const getAllServices = catchAsync(async (req: Request, res: Response) => {
-  const result = await serviceServices.getAllServices(req.query);
+  const query = { ...req.query };
+  query.isVisible = 'true';
+  const result = await serviceServices.getAllServices(query);
   sendResponse(res, {
     statusCode: 200,
     success: true,

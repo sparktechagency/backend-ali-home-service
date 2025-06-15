@@ -43,7 +43,13 @@ const getSingleService = async (id: string) => {
 };
 
 const updateService = async (id: string, payload: Partial<Iservice>) => {
-  const result = await Service.findByIdAndUpdate(id, payload, { new: true });
+  // Remove category if it's an empty string
+  if (typeof payload.category === 'string' && payload.category === '') {
+    delete payload.category;
+  }
+  const result = await Service.findByIdAndUpdate(id, payload, {
+    new: true,
+  });
   return result;
 };
 
