@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import bcrypt from 'bcrypt';
 import httpStatus from 'http-status';
-import mongoose from 'mongoose';
+import mongoose, { PipelineStage } from 'mongoose';
 import AppError from '../../error/AppError';
 
 import config from '../../config';
+import calculatePagination from '../../shared/paginationHelper';
 import { createToken } from '../auth/auth.utils';
 import { Icustomer } from '../customer/customer.interface';
 import Customer from '../customer/customer.model';
@@ -12,8 +13,10 @@ import { IEmployee } from '../employee/employee.interface';
 import Employee from '../employee/employee.model';
 import { IServiceProvider } from '../provider/provider.interface';
 import { Provider } from '../provider/provider.model';
-import { TUser, UserRole } from './user.interface';
-import User from './user.model';
+import { USER_ROLE } from './user.constant';
+import { TUser, UserQuery, UserRole } from './user.interface';
+import User, { Admin } from './user.model';
+
 // customer
 const insertCustomerIntoDb = async (
   payload: Icustomer & TUser,
@@ -61,6 +64,45 @@ const insertCustomerIntoDb = async (
     throw new Error(error as any);
   }
 };
+const insertAdminIntoDb = async (payload: any): Promise<any | null> => {
+  // check if same email exists
+  const isExistUser = await User.findOne({ email: payload?.email });
+  if (isExistUser) {
+    throw new AppError(
+      httpStatus.CONFLICT,
+      'User already exists with this email!',
+    );
+  }
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    // Create user (directly verified, no OTP)
+    const insertUser = await User.create([{ ...payload, isVerified: true }], {
+      session,
+    });
+    if (!insertUser[0]) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'User not created');
+    }
+
+    // Create admin profile (name, image in admin model)
+    const adminData = {
+      fullName: payload.fullName,
+      image: payload.image,
+      user: insertUser[0]?._id,
+    };
+    const result = await Admin.create([adminData], { session });
+
+    await session.commitTransaction();
+    await session.endSession();
+    return result[0];
+  } catch (error) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new Error(error as any);
+  }
+};
 
 // login with google customer
 
@@ -69,7 +111,6 @@ const SignupWithGoogleForCustomer = async (payload: Icustomer & TUser) => {
   const user: any = await User.findOne({ email });
   let needPhoneNumber = false;
   let profile: any = {};
-  console.log('payload', user);
   // if account is found
   if (user) {
     if (!user?.isActive) {
@@ -376,6 +417,144 @@ const updatePhoneNumber = async (id: string, payload: any) => {
   const result = await User.findByIdAndUpdate(id, payload);
   return result;
 };
+const getUserStaticsData = async () => {
+  const totalCustomer = await User.countDocuments({ role: USER_ROLE.customer });
+  const totalProviders = await User.countDocuments({
+    role: USER_ROLE.provider,
+  });
+
+  return {
+    totalCustomer,
+    totalProviders,
+  };
+};
+
+export const getAllUsers = async (query: UserQuery) => {
+  const { searchTerm, role, ...otherFilters } = query;
+  const { page, limit } = calculatePagination(query);
+  const skip = (page - 1) * limit;
+  const andConditions: any[] = [];
+
+  // Search condition (name, email, phoneNumber)
+  if (searchTerm) {
+    andConditions.push({
+      $or: ['fullName', 'email', 'phoneNumber'].map((field) => ({
+        [field]: {
+          $regex: searchTerm,
+          $options: 'i',
+        },
+      })),
+    });
+  }
+  if (role) {
+    andConditions.push({ role });
+  }
+  // Additional filters
+  if (Object.keys(otherFilters).length) {
+    andConditions.push({
+      $and: Object.entries(otherFilters).map(([key, value]) => ({
+        [key]: value,
+      })),
+    });
+  }
+
+  // Always exclude deleted users
+  andConditions.push({ isDeleted: false });
+
+  const matchCondition =
+    andConditions.length > 0 ? { $and: andConditions } : {};
+
+  // Base pipeline
+  const pipeline: PipelineStage[] = [{ $match: matchCondition }];
+
+  // Role-specific lookup and projection
+  if (role === USER_ROLE.customer) {
+    pipeline.push(
+      {
+        $lookup: {
+          from: 'customers',
+          localField: '_id',
+          foreignField: 'user',
+          as: 'customerInfo',
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          email: 1,
+          role: 1,
+          isActive: 1,
+          isDeleted: 1,
+          createdAt: 1,
+          fullName: { $arrayElemAt: ['$customerInfo.name', 0] },
+          image: { $arrayElemAt: ['$customerInfo.image', 0] },
+          address: { $arrayElemAt: ['$customerInfo.address', 0] },
+          countryCode: 1,
+          phoneNumber: 1,
+        },
+      },
+    );
+  } else if (role === USER_ROLE.provider) {
+    pipeline.push(
+      {
+        $lookup: {
+          from: 'providers',
+          localField: '_id',
+          foreignField: 'user',
+          as: 'providerInfo',
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          email: 1,
+          role: 1,
+          isActive: 1,
+          isDeleted: 1,
+          createdAt: 1,
+          fullName: { $arrayElemAt: ['$providerInfo.name', 0] },
+          image: { $arrayElemAt: ['$providerInfo.image', 0] },
+          address: { $arrayElemAt: ['$providerInfo.address', 0] },
+          countryCode: 1,
+          phoneNumber: 1,
+        },
+      },
+    );
+  } else {
+    pipeline.push({
+      $project: {
+        _id: 1,
+        email: 1,
+        role: 1,
+
+        isActive: 1,
+        isDeleted: 1,
+        createdAt: 1,
+      },
+    });
+  }
+
+  // Sorting, pagination
+  pipeline.push(
+    { $sort: { createdAt: -1 } },
+    { $skip: skip },
+    { $limit: limit },
+  );
+
+  // Query database
+  const users = await User.aggregate(pipeline);
+  const total = await User.countDocuments(matchCondition);
+
+  return {
+    data: users,
+    meta: {
+      page,
+      limit,
+      total,
+      totalPage: Math.ceil(total / limit),
+    },
+  };
+};
 
 export const userServices = {
   insertEmployeeIntoDb,
@@ -387,4 +566,7 @@ export const userServices = {
   getSingleUser,
   deleteAccount,
   updatePhoneNumber,
+  insertAdminIntoDb,
+  getUserStaticsData,
+  getAllUsers,
 };

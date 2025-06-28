@@ -23,6 +23,28 @@ const insertCustomerIntoDb = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+
+const insertAdminIntoDb = catchAsync(async (req: Request, res: Response) => {
+  // let image;
+  // if (req?.file) {
+  //   image = await uploadToS3(req?.file, 'profile/');
+  // }
+
+  const result = await userServices.insertAdminIntoDb({
+    ...req.body,
+    role: USER_ROLE.sup_admin,
+    // image,
+    verification: { status: true, expiresAt: new Date(), otp: 123450 }, // dummy verification data
+    isActive: true,
+    isVerified: true,
+  });
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Admin created successfully',
+    data: result,
+  });
+});
 // create customer with google
 const SignupWithGoogleForCustomer = catchAsync(
   async (req: Request, res: Response) => {
@@ -121,16 +143,7 @@ const updateProfile = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
-const getAllUsers = catchAsync(async (req: Request, res: Response) => {
-  const result = await userServices.getAllusers(req.query);
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: 'users retrived successfully',
-    data: result?.data,
-    meta: result?.meta,
-  });
-});
+
 const getsingleUser = catchAsync(async (req: Request, res: Response) => {
   const result = await userServices.getSingleUser(req.params.id);
   sendResponse(res, {
@@ -167,16 +180,37 @@ const deleteAccount = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getUserStaticsData = catchAsync(async (req: Request, res: Response) => {
+  const result = await userServices.getUserStaticsData();
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'User statistics retrieved successfully',
+    data: result,
+  });
+});
+const getAllUser = catchAsync(async (req: Request, res: Response) => {
+  const result = await userServices.getAllUsers(req.query);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'All users retrieved successfully',
+    data: result?.data,
+    meta: result?.meta,
+  });
+});
 export const userControllers = {
   insertCustomerIntoDb,
+  insertAdminIntoDb,
   insertProviderintoDb,
   insertEmployeeIntoDb,
   SignupWithGoogleForCustomer,
   getme,
   updateProfile,
-  getAllUsers,
   getsingleUser,
   updateUser,
   deleteAccount,
   updatePhoneNumber,
+  getUserStaticsData,
+  getAllUser,
 };

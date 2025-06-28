@@ -13,6 +13,7 @@ import Customer from '../customer/customer.model';
 import Employee from '../employee/employee.model';
 import { Provider } from '../provider/provider.model';
 import { Shop } from '../shop/shop.model';
+import { USER_ROLE } from '../user/user.constant';
 import { UserRole } from '../user/user.interface';
 import User from '../user/user.model';
 import { TchangePassword, Tlogin, TresetPassword } from './auth.interface';
@@ -82,6 +83,51 @@ const login = async (payload: Tlogin) => {
     config.jwt_access_expires_in as string,
   );
 
+  const refreshToken = createToken(
+    jwtPayload,
+    config.jwt_refresh_secret as string,
+    config.jwt_refresh_expires_in as string,
+  );
+  return {
+    user,
+    accessToken,
+    refreshToken,
+  };
+};
+
+//  login for admin
+
+const adminLogin = async (payload: { email: string; password: string }) => {
+  const user = await User.isUserExist(payload?.email);
+
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User Not Found');
+  }
+  if (user.role !== USER_ROLE.sup_admin) {
+    throw new AppError(httpStatus.FORBIDDEN, 'Access denied: Not an admin');
+  }
+  if (!user.isActive) {
+    throw new AppError(httpStatus.FORBIDDEN, 'This user is blocked ! !');
+  }
+  if (user.isDeleted) {
+    throw new AppError(httpStatus.FORBIDDEN, 'This user is deleted !');
+  }
+  if (!user.isVerified) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'user is not verified !');
+  }
+  if (!(await User.isPasswordMatched(payload.password, user.password))) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'password do not match');
+  }
+
+  const jwtPayload = {
+    userId: user._id,
+    role: user.role,
+  };
+  const accessToken = createToken(
+    jwtPayload,
+    config.jwt_access_secret as string,
+    config.jwt_access_expires_in as string,
+  );
   const refreshToken = createToken(
     jwtPayload,
     config.jwt_refresh_secret as string,
@@ -255,4 +301,5 @@ export const authServices = {
   forgotPassword,
   resetPassword,
   refreshToken,
+  adminLogin,
 };

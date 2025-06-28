@@ -19,6 +19,12 @@ router.post(
   userControllers.SignupWithGoogleForCustomer,
 );
 router.post(
+  '/create-admin',
+  upload.single('file'),
+  parseData(),
+  userControllers.insertAdminIntoDb,
+);
+router.post(
   '/create-provider',
   upload.single('file'),
   parseData(),
@@ -62,17 +68,16 @@ router.get(
   ),
   userControllers.getme,
 );
-
-router.get(
-  '/all',
-  auth(USER_ROLE.vendor, USER_ROLE.admin),
-  userControllers.getAllUsers,
-);
-
+router.get('/', userControllers.getAllUser);
 router.get(
   '/:id',
   auth(USER_ROLE.vendor, USER_ROLE.admin),
   userControllers.getsingleUser,
+);
+router.get(
+  '/admin/statics',
+  auth(USER_ROLE.sup_admin, USER_ROLE.admin),
+  userControllers.getUserStaticsData,
 );
 router.patch(
   '/update/:id',

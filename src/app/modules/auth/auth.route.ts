@@ -8,6 +8,7 @@ import { authValidation } from './auth.validation';
 const router = Router();
 
 router.post('/login', authControllers.login);
+router.post('/admin/login', authControllers.adminLogin);
 router.post(
   '/refresh-token',
   validateRequest(authValidation.refreshTokenValidationSchema),

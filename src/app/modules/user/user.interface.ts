@@ -36,6 +36,14 @@ export interface TUser {
   fcmToken?: string;
 }
 
+export interface UserQuery {
+  searchTerm?: string;
+  role?: string;
+  page?: number;
+  limit?: number;
+  [key: string]: any;
+}
+
 export interface UserModel extends Model<TUser> {
   isUserExist(email: string): Promise<TUser>;
   isUserExistByNumber(countryCode: string, phoneNumber: string): Promise<TUser>;

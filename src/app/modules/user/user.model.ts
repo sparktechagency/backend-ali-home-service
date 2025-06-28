@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import bcrypt from 'bcrypt';
 import { model, Schema } from 'mongoose';
+import { ImageSchema } from '../../../common/schemas/image.schema';
 import config from '../../config';
 import { TUser, UserModel, UserRole } from './user.interface';
 
@@ -84,6 +85,22 @@ const UserSchema = new Schema<TUser, UserModel>(
   },
 );
 
+const AdminSchema = new Schema(
+  {
+    fullName: {
+      type: String,
+      required: true,
+    },
+    image: ImageSchema,
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+  },
+  { timestamps: true },
+);
+
 // Pre-save hook to hash password if it is modified or new
 UserSchema.pre('save', async function (next) {
   const user = this;
@@ -147,5 +164,6 @@ UserSchema.pre('aggregate', function (next) {
 });
 // Create and export the User model
 const User = model<TUser, UserModel>('User', UserSchema);
+export const Admin = model<TUser, UserModel>('Admin', AdminSchema);
 
 export default User;

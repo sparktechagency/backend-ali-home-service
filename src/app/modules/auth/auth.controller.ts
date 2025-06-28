@@ -28,6 +28,29 @@ const login = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+
+const adminLogin = catchAsync(async (req: Request, res: Response) => {
+  const result = await authServices.adminLogin(req.body);
+  const { refreshToken } = result;
+  const cookieOptions = {
+    secure: false,
+    httpOnly: true,
+    maxAge: 31536000000,
+  };
+
+  if (config.NODE_ENV === 'production') {
+    // @ts-ignore
+    cookieOptions.sameSite = 'none';
+  }
+  res.cookie('refreshToken', refreshToken, cookieOptions);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Admin logged in successfully',
+    data: result,
+  });
+});
 const changePassword = catchAsync(async (req: Request, res: Response) => {
   const result = await authServices.changePassword(req?.user?.userId, req.body);
   sendResponse(res, {
@@ -77,4 +100,5 @@ export const authControllers = {
   forgotPassword,
   resetPassword,
   refreshToken,
+  adminLogin,
 };
