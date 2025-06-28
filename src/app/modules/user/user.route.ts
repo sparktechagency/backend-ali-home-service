@@ -47,9 +47,9 @@ router.patch(
 );
 router.patch(
   '/update/:id',
-  auth(USER_ROLE.provider, USER_ROLE.customer, USER_ROLE.employee),
-  upload.single('file'),
-  parseData(),
+  auth(USER_ROLE.sup_admin, USER_ROLE.admin),
+  // upload.single('file'),
+  // parseData(),
   userControllers.updateUser,
 );
 router.patch(
@@ -79,15 +79,11 @@ router.get(
   auth(USER_ROLE.sup_admin, USER_ROLE.admin),
   userControllers.getUserStaticsData,
 );
-router.patch(
-  '/update/:id',
-  auth(USER_ROLE.admin),
-  parseData(),
-  userControllers.updateUser,
-);
+
 router.patch(
   '/:id',
   auth(USER_ROLE.user),
+  upload.single('file'),
   parseData(),
   auth(
     USER_ROLE.sup_admin,

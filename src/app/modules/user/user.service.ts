@@ -556,6 +556,10 @@ export const getAllUsers = async (query: UserQuery) => {
   };
 };
 
+const updateUser = async (id: string, payload: Partial<TUser>) => {
+  const user = await User.findByIdAndUpdate(id, payload, { new: true });
+  return user;
+};
 export const userServices = {
   insertEmployeeIntoDb,
   insertCustomerIntoDb,
@@ -569,4 +573,5 @@ export const userServices = {
   insertAdminIntoDb,
   getUserStaticsData,
   getAllUsers,
+  updateUser,
 };

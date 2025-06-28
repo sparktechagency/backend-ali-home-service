@@ -154,10 +154,6 @@ const getsingleUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const updateUser = catchAsync(async (req: Request, res: Response) => {
-  if (req?.file) {
-    req.body.image = storeFile('profile', req?.file?.filename);
-  }
-  console.log(req.body);
   const result = await userServices.updateUser(req.params.id, req.body);
   sendResponse(res, {
     statusCode: 200,
