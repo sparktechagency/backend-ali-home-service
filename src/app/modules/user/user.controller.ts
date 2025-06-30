@@ -82,7 +82,6 @@ const insertProviderintoDb = catchAsync(async (req: Request, res: Response) => {
 
 // create employee
 const insertEmployeeIntoDb = catchAsync(async (req: Request, res: Response) => {
-  console.log(req.user);
   const data = {
     ...req.body,
     image: req?.file ? await uploadToS3(req.file, 'profile/') : undefined,
@@ -163,7 +162,6 @@ const updateUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const deleteAccount = catchAsync(async (req: Request, res: Response) => {
-  console.log(req.body, 'DD');
   const result = await userServices.deleteAccount(
     req?.user?.userId,
     req?.body?.password,

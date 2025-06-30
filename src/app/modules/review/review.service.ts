@@ -63,7 +63,10 @@ const insertReviewIntoDb = async (payload: Partial<Ireview>) => {
     }
 
     // Create the review
-    const [review] = await Review.create([payload], { session });
+    const [review] = await Review.create(
+      [{ ...payload, shop: service?.shop }],
+      { session },
+    );
 
     await session.commitTransaction();
     await session.endSession();
@@ -83,8 +86,16 @@ const getReviewsForService = async (serviceId: string) => {
   });
   return result;
 };
+const getShopwisereview = async (query: any) => {
+  const result = await Review.find(query).populate({
+    path: 'customer',
+    select: 'name image email',
+  });
+  return result;
+};
 
 export const reviewServices = {
   insertReviewIntoDb,
   getReviewsForService,
+  getShopwisereview,
 };

@@ -24,6 +24,7 @@ router.get(
     USER_ROLE.provider,
     USER_ROLE.customer,
     USER_ROLE.employee,
+    USER_ROLE.sup_admin,
   ),
   shopController.getAllShops,
 );
@@ -34,12 +35,13 @@ router.get(
     USER_ROLE.provider,
     USER_ROLE.customer,
     USER_ROLE.employee,
+    USER_ROLE.sup_admin,
   ),
   shopController.getNearbyShop,
 );
 router.get(
   '/my-shop',
-  auth(USER_ROLE.provider, USER_ROLE.employee),
+  auth(USER_ROLE.provider, USER_ROLE.employee, USER_ROLE.sup_admin),
   shopController.getmyshop,
 );
 router.get(
@@ -49,6 +51,7 @@ router.get(
     USER_ROLE.provider,
     USER_ROLE.customer,
     USER_ROLE.employee,
+    USER_ROLE.sup_admin,
   ),
   shopController.getSingleShop,
 );

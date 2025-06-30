@@ -44,7 +44,6 @@ const updateCategory = catchAsync(async (req: Request, res: Response) => {
   if (req?.file) {
     data['image'] = await uploadToS3(req?.file, 'category/');
   }
-
   const result = await categoryServices.updateCategory(req.params.id, data);
   sendResponse(res, {
     statusCode: 200,

@@ -13,6 +13,11 @@ const reviewSchema = new Schema<Ireview>(
       ref: 'Quote', // Assuming you have an Order model
       required: true,
     },
+    shop: {
+      type: Schema.Types.ObjectId,
+      ref: 'Shop', // Assuming you have an Order model
+      required: true,
+    },
     comment: {
       type: String,
       required: true,

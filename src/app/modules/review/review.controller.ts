@@ -25,8 +25,18 @@ const getserviceWiseReview = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const getShopwisereview = catchAsync(async (req: Request, res: Response) => {
+  const result = await reviewServices.getShopwisereview(req.query);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Reviews retrieved successfully',
+    data: result,
+  });
+});
 
 export const reviewController = {
   insertReviewIntoDb,
   getserviceWiseReview,
+  getShopwisereview,
 };

@@ -505,6 +505,19 @@ export const getAllUsers = async (query: UserQuery) => {
         },
       },
       {
+        $addFields: {
+          providerId: { $arrayElemAt: ['$providerInfo._id', 0] },
+        },
+      },
+      {
+        $lookup: {
+          from: 'shops',
+          localField: 'providerId',
+          foreignField: 'provider',
+          as: 'shopInfo',
+        },
+      },
+      {
         $project: {
           _id: 1,
           email: 1,
@@ -513,10 +526,18 @@ export const getAllUsers = async (query: UserQuery) => {
           isDeleted: 1,
           createdAt: 1,
           fullName: { $arrayElemAt: ['$providerInfo.name', 0] },
+          providerId: 1,
           image: { $arrayElemAt: ['$providerInfo.image', 0] },
-          address: { $arrayElemAt: ['$providerInfo.address', 0] },
+          // address: { $arrayElemAt: ['$providerInfo.address', 0] },
           countryCode: 1,
           phoneNumber: 1,
+          shop: {
+            name: { $arrayElemAt: ['$shopInfo.name', 0] },
+            address: { $arrayElemAt: ['$shopInfo.address', 0] },
+            helpLineNumber: { $arrayElemAt: ['$shopInfo.helpLineNumber', 0] },
+            license: { $arrayElemAt: ['$shopInfo.license', 0] },
+            _id: { $arrayElemAt: ['$shopInfo._id', 0] },
+          },
         },
       },
     );

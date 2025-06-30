@@ -12,6 +12,7 @@ const ShopSchema = new Schema<Ishop, ShopModel>(
       default: 0,
     },
     helpLineNumber: { type: Number, required: true },
+    license: { type: String, required: true },
     location: {
       coordinates: [Number],
       type: {

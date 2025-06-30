@@ -22,10 +22,10 @@ router.get('/', categoryControllers.getAllCategories);
 router.get('/:id', categoryControllers.getSingleCategory);
 router.patch(
   '/:id',
+  // auth(USER_ROLE.sup_admin, USER_ROLE.admin),
+  validateRequest(categoryValidation.updateCategorySchema),
   upload.single('file'),
   parseData(),
-  validateRequest(categoryValidation.updateCategorySchema),
-  auth(USER_ROLE.sup_admin, USER_ROLE.admin),
   categoryControllers.updateCategory,
 );
 
