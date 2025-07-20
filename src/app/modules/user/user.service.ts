@@ -13,6 +13,7 @@ import { IEmployee } from '../employee/employee.interface';
 import Employee from '../employee/employee.model';
 import { IServiceProvider } from '../provider/provider.interface';
 import { Provider } from '../provider/provider.model';
+import { Shop } from '../shop/shop.model';
 import { USER_ROLE } from './user.constant';
 import { TUser, UserQuery, UserRole } from './user.interface';
 import User, { Admin } from './user.model';
@@ -247,7 +248,28 @@ const insertProviderIntoDb = async (
       'User already exist with this same number!',
     );
   }
+  //  check if same email exist
+  const isExistEmail = await User.findOne({ email: payload?.email });
+  if (isExistEmail) {
+    throw new AppError(
+      httpStatus.CONFLICT,
+      'User already exist with this same email!',
+    );
+  }
   const session = await mongoose.startSession();
+
+// proivider data
+const providerData ={
+  name:payload?.name,
+  email:payload?.email,
+  password:payload?.password,
+  address:payload?.address,
+  role:payload?.role,
+  countryCode:payload?.countryCode,
+phoneNumber:payload?.phoneNumber
+}
+
+
 
   const otp = {
     otp: 123456,
@@ -256,7 +278,7 @@ const insertProviderIntoDb = async (
   };
   try {
     session.startTransaction();
-    const insertUser = await User.create([{ ...payload, verification: otp }], {
+    const insertUser = await User.create([{ ...providerData, verification: otp }], {
       session,
     });
     if (!insertUser[0]) {
@@ -265,12 +287,32 @@ const insertProviderIntoDb = async (
     const result = await Provider.create(
       [
         {
-          ...payload,
+          ...providerData,
           user: insertUser[0]?._id,
         },
       ],
       { session },
     );
+
+const shopData  ={
+  name:payload?.shopName,
+  address:payload?.shopAddress,
+  helpLineNumber:payload?.helpLineNumber,
+  license:payload?.license,
+  images:payload?.image,
+  location:{coordinates:[payload?.location?.lng, payload?.location?.lat]},
+  provider:result[0]?._id,
+  image:payload?.image
+
+}
+
+ await Shop.create(
+      [
+        shopData
+      ],
+      { session },
+    );
+
     await session.commitTransaction();
     await session.endSession();
     console.log('==================result', result[0]);

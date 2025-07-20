@@ -29,7 +29,7 @@ const ProviderSchema = new Schema<IServiceProvider>({
     default: ' ',
   },
   helpLineNumber: { type: String },
-  image: { type: ImageSchema, required: true },
+  image: { type: ImageSchema},
   isDeleted: { type: Boolean, default: false },
 });
 

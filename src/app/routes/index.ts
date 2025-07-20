@@ -12,6 +12,7 @@ import { chatRoutes } from '../modules/chat/chat.route';
 import { messagesRoutes } from '../modules/messages/messages.route';
 import notificationRoutes from '../modules/notification/notification.route';
 import { paymentRoutes } from '../modules/payment/payment.route';
+import ProviderRoutes from '../modules/provider/provider.route';
 import { quotesRoutes } from '../modules/quotes/quotes.route';
 import { reviewRoutes } from '../modules/review/review.route';
 import { serviceCategoryRoutes } from '../modules/serviceCategory/serviceCategory.route';
@@ -27,6 +28,10 @@ const moduleRoutes = [
   {
     path: '/employees',
     route: employeeRoutes,
+  },
+  {
+    path: '/providers',
+    route: ProviderRoutes,
   },
   {
     path: '/auth',
