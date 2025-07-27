@@ -23,7 +23,9 @@ const insertPaymentIntoDb = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const checkout = catchAsync(async (req: Request, res: Response) => {
-  const result = await paymentServices.checkout(req.body);
+  const data = { ...req.body };
+  data['customer'] = req.user.profileId;
+  const result = await paymentServices.checkout(data);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -57,7 +59,9 @@ const getPaymentsByProvider = catchAsync(
 );
 const completePaymentByHandCash = catchAsync(
   async (req: Request, res: Response) => {
-    const result = await paymentServices.completePaymentByHandCash(req.body);
+    const data = { ...req.body };
+    data['customer'] = req.user.profileId;
+    const result = await paymentServices.completePaymentByHandCash(data);
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -66,6 +70,26 @@ const completePaymentByHandCash = catchAsync(
     });
   },
 );
+const showTransactions = catchAsync(async (req: Request, res: Response) => {
+  console.log(req.query);
+  const result = await paymentServices.showTransactions(req.query);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Transactions retrieved successfully',
+    data: result?.data,
+    meta: result?.meta,
+  });
+});
+const transactionOverview = catchAsync(async (req: Request, res: Response) => {
+  const result = await paymentServices.transactionOverview();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Transactions retrieved successfully',
+    data: result,
+  });
+});
 
 export const paymentControllers = {
   createPaymentIntent,
@@ -74,4 +98,6 @@ export const paymentControllers = {
   confirmPayment,
   getPaymentsByProvider,
   completePaymentByHandCash,
+  showTransactions,
+  transactionOverview,
 };

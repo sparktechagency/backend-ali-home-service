@@ -1,18 +1,19 @@
 import { model, Schema } from 'mongoose';
 import { Ipayment } from './payment.interface';
+import moment from 'moment';
 
 const paymentSchema = new Schema<Ipayment>(
   {
-    // customer: {
-    //   type: Schema.Types.ObjectId,
-    //   ref: 'Customer',
-    //   required: true,
-    // },
-    // service: {
-    //   type: Schema.Types.ObjectId,
-    //   ref: 'Service',
-    //   required: true,
-    // },
+    customer: {
+      type: Schema.Types.ObjectId,
+      ref: 'Customer',
+      required: true,
+    },
+    service: {
+      type: Schema.Types.ObjectId,
+      ref: 'Service',
+      required: true,
+    },
     quote: {
       type: Schema.Types.ObjectId,
       ref: 'Quote',
@@ -36,6 +37,10 @@ const paymentSchema = new Schema<Ipayment>(
       type: Number,
       default: 0,
     },
+    serviceFee: {
+      type: Number,
+      default: 0,
+    },
     amountPaidWithCoins: {
       type: Number,
       default: 0,
@@ -48,6 +53,10 @@ const paymentSchema = new Schema<Ipayment>(
       type: String,
       enum: ['online', 'cash'],
       required: true,
+    },
+    date:{
+      type:String,
+      default: moment(Date.now()).format('YYYY-MM-DD'),
     },
     transactionId: {
       type: String,

@@ -24,11 +24,7 @@ router.post(
   auth(USER_ROLE.customer),
   paymentControllers.createPaymentIntent,
 );
-router.post(
-  '/checkout',
-  // auth(USER_ROLE.customer),
-  paymentControllers.checkout,
-);
+router.post('/checkout', auth(USER_ROLE.customer), paymentControllers.checkout);
 router.get(
   '/confirm-payment',
   // auth(USER_ROLE.customer),
@@ -38,6 +34,16 @@ router.post(
   '/pay-by-cash',
   auth(USER_ROLE.customer),
   paymentControllers.completePaymentByHandCash,
+);
+router.get(
+  '/transactions',
+  // auth(USER_ROLE.sup_admin, USER_ROLE.admin),
+  paymentControllers.showTransactions,
+);
+router.get(
+  '/transactionsOverview',
+  // auth(USER_ROLE.sup_admin, USER_ROLE.admin),
+  paymentControllers.transactionOverview,
 );
 
 export const paymentRoutes = router;

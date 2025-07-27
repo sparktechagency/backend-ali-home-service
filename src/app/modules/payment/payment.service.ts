@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from 'http-status';
+import moment from 'moment';
 import mongoose, { startSession } from 'mongoose';
 import Stripe from 'stripe';
 import config from '../../config';
@@ -73,18 +74,18 @@ const checkout = async (payload: any) => {
 };
 
 const confirmPayment = async (query: Record<string, any>) => {
-  const { sessionId, quote, amountPaidWithCoins, coins } = query;
+  const { sessionId, quote, amountPaidWithCoins, coins, service, customer } =
+    query;
   const session = await startSession();
   const PaymentSession = await stripe.checkout.sessions.retrieve(sessionId);
-  console.log(PaymentSession?.status);
   const paymentIntentId = PaymentSession.payment_intent as string;
 
   try {
     session.startTransaction();
 
     if (PaymentSession?.status === 'complete') {
+      console.log(query);
       // Update payment status to "paid" in MongoDB
-      console.log('being hitted');
       const result = await Payment.create(
         [
           {
@@ -93,6 +94,11 @@ const confirmPayment = async (query: Record<string, any>) => {
             amountPaidWithCoins: amountPaidWithCoins,
             coins: coins,
             transactionId: PaymentSession?.id,
+            serviceFee: Math.round(
+              (Number(PaymentSession?.amount_total) / 100) * 0.03,
+            ),
+            service: service,
+            customer: customer,
             amount: Number(PaymentSession?.amount_total) / 100,
           },
         ],
@@ -289,14 +295,18 @@ const completePaymentByHandCash = async (payload: any) => {
         },
       );
     }
-
-    // Create a payment record
+    const baseAmount = Number(updateQuote?.fee); // in dollars
+    const serviceFee = Math.round(baseAmount * 0.03); // 3% service fee
+    const totalAmount = baseAmount + serviceFee;
     const result = await Payment.create(
       [
         {
           quote: payload?.quote,
+          service: updateQuote?.service,
+          customer: payload?.customer,
           gateway: 'cash',
-          amount: updateQuote?.fee,
+          amount: Number(totalAmount),
+          serviceFee: serviceFee,
           coins: payload?.coins,
           amountPaidWithCoins: payload?.amountPaidWithCoins,
         },
@@ -348,6 +358,139 @@ const completePaymentByHandCash = async (payload: any) => {
   }
 };
 
+const showTransactions = async (query: Record<string, any>) => {
+  const { page: pageQuery, limit: limitQuery, date, ...filters } = query;
+  if (date) {
+    const [startDate, endDate] = date.split(',');
+    filters.date = {
+      $gte: startDate,
+      $lte: endDate,
+    };
+  }
+  const page = parseInt(pageQuery, 10) || 1;
+  const limit = parseInt(limitQuery, 10) || 10;
+  const skip = (page - 1) * limit;
+
+  const pipeline: any = [
+    {
+      $match: {
+        ...filters,
+      },
+    },
+    {
+      $lookup: {
+        from: 'customers',
+        localField: 'customer',
+        foreignField: '_id',
+        as: 'customerDetails',
+        pipeline: [
+          {
+            $project: {
+              name: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: {
+        path: '$customerDetails',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: 'services',
+        localField: 'service',
+        foreignField: '_id',
+        as: 'serviceDetails',
+        pipeline: [
+          {
+            $project: {
+              serviceName: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: {
+        path: '$serviceDetails',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $project: {
+        createdAt: 1,
+        transactionId: 1,
+        amount: 1,
+        serviceFee: 1,
+        gateway: 1,
+        customerName: '$customerDetails.name',
+        serviceName: '$serviceDetails.serviceName',
+      },
+    },
+    { $sort: { createdAt: -1 } },
+    { $skip: skip },
+    { $limit: limit },
+  ];
+
+  const transactions = await Payment.aggregate(pipeline);
+  const total = await Payment.countDocuments(filters);
+
+  return {
+    data: transactions,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPage: Math.ceil(total / limit),
+    },
+  };
+};
+
+ const transactionOverview = async () => {
+  const today = moment().format('YYYY-MM-DD');
+
+  const stats = await Payment.aggregate([
+    {
+      $group: {
+        _id: null,
+        totalIncome: { $sum: '$amount' },
+        cashIncome: {
+          $sum: {
+            $cond: [{ $eq: ['$gateway', 'cash'] }, '$amount', 0],
+          },
+        },
+        onlineIncome: {
+          $sum: {
+            $cond: [{ $eq: ['$gateway', 'online'] }, '$amount', 0],
+          },
+        },
+      },
+    },
+  ]);
+
+  const todayStats = await Payment.aggregate([
+    {
+      $match: { date: today },
+    },
+    {
+      $group: {
+        _id: null,
+        todayIncome: { $sum: '$amount' },
+      },
+    },
+  ]);
+
+  return {
+    totalIncome: stats[0]?.totalIncome || 0,
+    cashIncome: stats[0]?.cashIncome || 0,
+    onlineIncome: stats[0]?.onlineIncome || 0,
+    todayIncome: todayStats[0]?.todayIncome || 0,
+  };
+};
+
 export const paymentServices = {
   insertPaymentIntoDb,
   createPaymentIntent,
@@ -355,4 +498,6 @@ export const paymentServices = {
   completePaymentByHandCash,
   confirmPayment,
   getPaymentsByProvider,
+  showTransactions,
+  transactionOverview,
 };
