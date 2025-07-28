@@ -18,6 +18,9 @@ import { reviewRoutes } from '../modules/review/review.route';
 import { serviceCategoryRoutes } from '../modules/serviceCategory/serviceCategory.route';
 import { serviceRoutes } from '../modules/services/service.route';
 import { shopRoutes } from '../modules/shop/shop.route';
+import walletRoutes, {
+  ProviderTransactionRoutes,
+} from '../modules/wallet/wallet.route';
 
 const router = Router();
 const moduleRoutes = [
@@ -81,6 +84,14 @@ const moduleRoutes = [
   {
     path: '/payments',
     route: paymentRoutes,
+  },
+  {
+    path: '/wallet',
+    route: walletRoutes,
+  },
+  {
+    path: '/provider_transactions',
+    route: ProviderTransactionRoutes,
   },
   {
     path: '/content',

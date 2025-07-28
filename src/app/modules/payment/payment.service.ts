@@ -9,6 +9,7 @@ import { Coin } from '../coins/coins.model';
 import { QuotestatusEnum } from '../quotes/quotes.constant';
 import { Quotes } from '../quotes/quotes.model';
 import Service from '../services/service.model';
+import { Wallet } from '../wallet/wallet.model';
 import { Ipayment } from './payment.interface';
 import { Payment } from './payment.model';
 import { calculateAmount, createCheckoutSession } from './payment.utils';
@@ -84,8 +85,6 @@ const confirmPayment = async (query: Record<string, any>) => {
     session.startTransaction();
 
     if (PaymentSession?.status === 'complete') {
-      console.log(query);
-      // Update payment status to "paid" in MongoDB
       const result = await Payment.create(
         [
           {
@@ -130,6 +129,37 @@ const confirmPayment = async (query: Record<string, any>) => {
           { session },
         );
       }
+
+      const findProvider: any = await Service.findById(service).populate({
+        path: 'shop',
+        select: 'provider',
+      });
+      const totalAmount = Number(PaymentSession?.amount_total) / 100;
+      const serviceFee = Number(result[0]?.serviceFee || 0);
+      const netAmount = totalAmount - serviceFee;
+
+      let walletData = await Wallet.findOne({
+        provider: findProvider?.shop?.provider,
+      });
+
+      if (walletData) {
+        // Update the existing wallet amount
+        walletData.amount += netAmount;
+        await walletData.save();
+      } else {
+        // Create a new wallet
+        await Wallet.create(
+          [
+            {
+              shop: findProvider?.shop,
+              provider: findProvider?.shop?.provider,
+              amount: netAmount,
+            },
+          ],
+          { session },
+        );
+      }
+
       await session.commitTransaction();
       await session.endSession();
       return result;
@@ -449,7 +479,7 @@ const showTransactions = async (query: Record<string, any>) => {
   };
 };
 
- const transactionOverview = async () => {
+const transactionOverview = async () => {
   const today = moment().format('YYYY-MM-DD');
 
   const stats = await Payment.aggregate([
