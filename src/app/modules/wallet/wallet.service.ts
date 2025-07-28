@@ -8,17 +8,21 @@ const findProviderWiseWallet = async (id: string) => {
   return result;
 };
 
-const updateWallet = async (walletId: string, data: any) => {
+const updateWallet = async (id: string, payload: any) => {
+  const result = await Wallet.findByIdAndUpdate(id, payload, { new: true });
+  return result;
+};
+const updateTransaction = async (walletId: string, data: any) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
     // Fetch the existing wallet
-    const wallet = await Wallet.findById(walletId).session(session);
-    if (!wallet) throw new Error('Wallet not found');
+    const wallet: any = await Wallet.findById(walletId);
 
     const amountToPay = data?.amountPaid;
-    if (amountToPay > wallet.amount) {
+
+    if (wallet && Number(amountToPay) > Number(wallet?.amount)) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
         'Paid amount exceeds wallet balance',
@@ -29,6 +33,7 @@ const updateWallet = async (walletId: string, data: any) => {
     wallet.amount -= amountToPay;
     wallet.lastPaidAmount = amountToPay;
     wallet.lastPaidDate = new Date().toISOString();
+    wallet.totalPaid = Number(wallet.totalPaid || 0) + Number(amountToPay);
 
     await wallet.save({ session });
 
@@ -46,7 +51,6 @@ const updateWallet = async (walletId: string, data: any) => {
 
     await session.commitTransaction();
     session.endSession();
-
     return wallet;
   } catch (err) {
     await session.abortTransaction();
@@ -54,6 +58,7 @@ const updateWallet = async (walletId: string, data: any) => {
     throw err;
   }
 };
+
 //  get provider transaction
 
 const getProviderTransactions = async (walletId: string) => {
@@ -67,6 +72,7 @@ const getProviderTransactions = async (walletId: string) => {
 
 export const walletServices = {
   findProviderWiseWallet,
+  updateTransaction,
   updateWallet,
 };
 

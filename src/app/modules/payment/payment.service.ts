@@ -143,17 +143,28 @@ const confirmPayment = async (query: Record<string, any>) => {
       });
 
       if (walletData) {
-        // Update the existing wallet amount
+        const percentage = walletData.percentage || 30;
+        const adminCommissionToAdd = Math.round(
+          (totalAmount * percentage) / 100,
+        );
         walletData.amount += netAmount;
-        await walletData.save();
+        walletData.adminComission =
+          Number(walletData.adminComission || 0) + adminCommissionToAdd;
+
+        await walletData.save({ session });
       } else {
-        // Create a new wallet
+        const percentage = findProvider?.shop?.percentage || 30;
+        const adminCommissionToAdd = Math.round(
+          (totalAmount * percentage) / 100,
+        );
+
         await Wallet.create(
           [
             {
               shop: findProvider?.shop,
               provider: findProvider?.shop?.provider,
               amount: netAmount,
+              adminComission: adminCommissionToAdd,
             },
           ],
           { session },

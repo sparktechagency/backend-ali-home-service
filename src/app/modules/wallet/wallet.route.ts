@@ -11,9 +11,14 @@ router.get(
   walletController.findProviderWiseWallet,
 );
 router.patch(
-  '/:id',
+  '/percentage/:id',
   // auth(USER_ROLE.sup_admin),
   walletController.updateWallet,
+);
+router.patch(
+  '/:id',
+  // auth(USER_ROLE.sup_admin),
+  walletController.updateTransaction,
 );
 ProviderTransactionRoutes.get(
   '/:id',

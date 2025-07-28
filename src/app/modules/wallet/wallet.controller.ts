@@ -15,6 +15,19 @@ const findProviderWiseWallet = catchAsync(
     });
   },
 );
+const updateTransaction = catchAsync(async (req: Request, res: Response) => {
+  console.log(req.body);
+  const result = await walletServices.updateTransaction(
+    req.params.id,
+    req.body,
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Wallet data updated successfully',
+    data: result,
+  });
+});
 const updateWallet = catchAsync(async (req: Request, res: Response) => {
   const result = await walletServices.updateWallet(req.params.id, req.body);
   sendResponse(res, {
@@ -40,6 +53,7 @@ const getProviderTransactions = catchAsync(
 
 const walletController = {
   findProviderWiseWallet,
+  updateTransaction,
   updateWallet,
 };
 

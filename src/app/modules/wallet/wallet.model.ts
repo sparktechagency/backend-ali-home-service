@@ -4,6 +4,8 @@ const WalletSchema = new Schema({
   provider: { type: Types.ObjectId, ref: 'Provider' },
   shop: { type: Types.ObjectId, ref: 'Shop' },
   percentage: { type: Number, default: 30 },
+  totalPaid: { type: Number, default: 0 },
+  adminComission: { type: Number, default: 0 },
   amount: { type: Number, required: true },
   lastPaidAmount: { type: Number },
   lastPaidDate: { type: String },
@@ -25,5 +27,8 @@ const ProviderTransactionSchema = new Schema({
   note: { type: String },
 });
 
-export const ProviderTransaction = model('ProviderTransaction', ProviderTransactionSchema);
+export const ProviderTransaction = model(
+  'ProviderTransaction',
+  ProviderTransactionSchema,
+);
 export const Wallet = model('Wallet', WalletSchema);
