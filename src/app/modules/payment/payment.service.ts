@@ -360,9 +360,6 @@ const completePaymentByHandCash = async (payload: any) => {
       throw new AppError(httpStatus.BAD_REQUEST, 'Something went wrong');
     }
 
-    // Update the quote's payment status
-
-    // Check if the quote update was successful
     if (!updateQuote) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Something went wrong');
     }
@@ -382,12 +379,35 @@ const completePaymentByHandCash = async (payload: any) => {
         }, // Return the modified document (after the update/insert) },
       );
     }
+
+    const service: any = await Service.findById(updateQuote?.service).populate({
+      path: 'shop',
+      select: '_id',
+    });
+    const wallet = await Wallet.findOne({ shop: service?.shop?._id }).session(
+      session,
+    );
+    // Step 3: Extract commission percentage
+    const commissionPercentage = wallet?.percentage || 30;
+    const baseCashAmount = Number(updateQuote?.fee); // Amount without service fee
+    // Calculate the commission from base amount
+    const commissionAmount = Math.round(
+      (commissionPercentage / 100) * baseCashAmount,
+    );
+    await Wallet.findByIdAndUpdate(
+      wallet?._id,
+      {
+        $inc: {
+          totalCashPayment: baseCashAmount,
+          cashPaymentComissionDue: commissionAmount,
+        },
+      },
+      { session },
+    );
     // Commit the transaction
     await session.commitTransaction();
-
     // End the session
     await session.endSession();
-
     return result;
   } catch (error) {
     // Rollback the transaction on error

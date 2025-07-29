@@ -60,6 +60,49 @@ const updateTransaction = async (walletId: string, data: any) => {
   }
 };
 
+const updateCashTransaction = async (walletId: string) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  const wallet = await Wallet.findById(walletId);
+  if (!wallet) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Wallet data not found');
+  }
+  try {
+    const result = await Wallet.findByIdAndUpdate(
+      walletId,
+      {
+        $set: {
+          cashPaymentComissionDue: 0,
+        },
+        $inc: {
+          totalCashPaymentComissionIncome: Number(
+            wallet?.cashPaymentComissionDue,
+          ),
+        },
+      },
+      { new: true, session },
+    );
+
+    const transaction = new ProviderTransaction({
+      wallet: walletId,
+      provider: result?.provider,
+      amountPaid: wallet?.cashPaymentComissionDue,
+      paidDate: new Date(),
+      type: 'received',
+    });
+
+    await transaction.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+    return result;
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
+};
+
 //  get provider transaction
 
 const getProviderTransactions = async (walletId: string) => {
@@ -102,6 +145,7 @@ export const walletServices = {
   updateTransaction,
   updateWallet,
   findTotalAdminIncome,
+  updateCashTransaction,
 };
 
 export const providerTransactionServices = {

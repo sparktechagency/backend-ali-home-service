@@ -14,6 +14,7 @@ import Employee from '../employee/employee.model';
 import { IServiceProvider } from '../provider/provider.interface';
 import { Provider } from '../provider/provider.model';
 import { Shop } from '../shop/shop.model';
+import { Wallet } from '../wallet/wallet.model';
 import { USER_ROLE } from './user.constant';
 import { TUser, UserQuery, UserRole } from './user.interface';
 import User, { Admin } from './user.model';
@@ -309,8 +310,13 @@ const insertProviderIntoDb = async (
       image: payload?.image,
     };
 
-    await Shop.create([shopData], { session });
+    const shop = await Shop.create([shopData], { session });
 
+    const walletData = {
+      provider: result[0]?._id,
+      shop: shop[0]?._id,
+    };
+    await Wallet.create([walletData], { session });
     await session.commitTransaction();
     await session.endSession();
     console.log('==================result', result[0]);

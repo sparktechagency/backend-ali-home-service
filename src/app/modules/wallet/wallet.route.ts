@@ -12,6 +12,11 @@ router.get(
   auth(USER_ROLE.sup_admin),
   walletController.findTotalAdminIncome,
 );
+router.patch(
+  '/cash/received/:id',
+  auth(USER_ROLE.sup_admin),
+  walletController.updateCashTransaction,
+);
 router.get(
   '/:id',
   // auth(USER_ROLE.sup_admin),
