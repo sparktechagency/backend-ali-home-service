@@ -50,11 +50,21 @@ const getProviderTransactions = catchAsync(
     });
   },
 );
+const findTotalAdminIncome = catchAsync(async (req: Request, res: Response) => {
+  const result = await walletServices.findTotalAdminIncome();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Transactions data retrieved successfully',
+    data: result,
+  });
+});
 
 const walletController = {
   findProviderWiseWallet,
   updateTransaction,
   updateWallet,
+  findTotalAdminIncome,
 };
 
 export const providerTransactionController = {

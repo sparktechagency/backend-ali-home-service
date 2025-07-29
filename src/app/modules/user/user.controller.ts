@@ -185,6 +185,7 @@ const getUserStaticsData = catchAsync(async (req: Request, res: Response) => {
 });
 const getAllUser = catchAsync(async (req: Request, res: Response) => {
   const result = await userServices.getAllUsers(req.query);
+  console.log(result?.data?.[0]);
   sendResponse(res, {
     statusCode: 200,
     success: true,

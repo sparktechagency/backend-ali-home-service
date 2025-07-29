@@ -41,7 +41,12 @@ router.post(
 );
 router.patch(
   '/',
-  auth(USER_ROLE.provider, USER_ROLE.customer, USER_ROLE.employee),
+  auth(
+    USER_ROLE.provider,
+    USER_ROLE.customer,
+    USER_ROLE.employee,
+    USER_ROLE.sup_admin,
+  ),
   upload.single('file'),
   userControllers.updateProfile,
 );

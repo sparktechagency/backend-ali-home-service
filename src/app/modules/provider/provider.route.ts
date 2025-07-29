@@ -12,6 +12,12 @@ router.get(
   auth(USER_ROLE.sup_admin),
   providerController.getSingleProviderWithShop,
 );
+
+router.patch(
+  '/block_unblock/:id',
+  auth(USER_ROLE.sup_admin),
+  providerController.blockUnblocProvider,
+);
 router.patch(
   '/:id',
   auth(USER_ROLE.sup_admin),

@@ -90,6 +90,19 @@ const transactionOverview = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const getMonthlyPaymentStats = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await paymentServices.getMonthlyPaymentStats(
+      req?.query?.year as string,
+    );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Transactions retrieved successfully',
+      data: result,
+    });
+  },
+);
 
 export const paymentControllers = {
   createPaymentIntent,
@@ -100,4 +113,5 @@ export const paymentControllers = {
   completePaymentByHandCash,
   showTransactions,
   transactionOverview,
+  getMonthlyPaymentStats,
 };

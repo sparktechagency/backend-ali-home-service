@@ -1,6 +1,7 @@
 import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import AppError from '../../error/AppError';
+import { Payment } from '../payment/payment.model';
 import { ProviderTransaction, Wallet } from './wallet.model';
 
 const findProviderWiseWallet = async (id: string) => {
@@ -62,7 +63,6 @@ const updateTransaction = async (walletId: string, data: any) => {
 //  get provider transaction
 
 const getProviderTransactions = async (walletId: string) => {
-  console.log(walletId);
   const result = await ProviderTransaction.find({ wallet: walletId }).populate(
     'provider',
     'name _id',
@@ -70,10 +70,38 @@ const getProviderTransactions = async (walletId: string) => {
   return result;
 };
 
+const findTotalAdminIncome = async () => {
+  // Sum adminComission from Wallet
+  const walletResult = await Wallet.aggregate([
+    {
+      $group: {
+        _id: null,
+        totalAdminCommission: { $sum: '$adminComission' },
+      },
+    },
+  ]);
+
+  // Sum serviceFee from Payment
+  const paymentResult = await Payment.aggregate([
+    {
+      $group: {
+        _id: null,
+        totalServiceFee: { $sum: '$serviceFee' },
+      },
+    },
+  ]);
+
+  return {
+    totalAdminCommission: walletResult[0]?.totalAdminCommission || 0,
+    totalServiceFee: paymentResult[0]?.totalServiceFee || 0,
+  };
+};
+
 export const walletServices = {
   findProviderWiseWallet,
   updateTransaction,
   updateWallet,
+  findTotalAdminIncome,
 };
 
 export const providerTransactionServices = {

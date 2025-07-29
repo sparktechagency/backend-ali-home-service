@@ -532,6 +532,59 @@ const transactionOverview = async () => {
   };
 };
 
+const getMonthlyPaymentStats = async (year: string) => {
+  const result = await Payment.aggregate([
+    {
+      $match: {
+        isDeleted: false,
+        date: {
+          $regex: `^${year}`, // Matches year like "2025"
+        },
+      },
+    },
+    {
+      $group: {
+        _id: { $month: { $toDate: '$createdAt' } },
+        amt: { $sum: '$amount' },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        month: '$_id',
+        amt: 1,
+      },
+    },
+  ]);
+
+  // Month map for sorting & labeling
+  const monthsMap = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+
+  // Prepare full array with default 0
+  const data = monthsMap.map((name, index) => {
+    const found = result.find((r) => r.month === index + 1);
+    return {
+      name,
+      amt: found ? found.amt : 0,
+    };
+  });
+
+  return data;
+};
+
 export const paymentServices = {
   insertPaymentIntoDb,
   createPaymentIntent,
@@ -541,4 +594,5 @@ export const paymentServices = {
   getPaymentsByProvider,
   showTransactions,
   transactionOverview,
+  getMonthlyPaymentStats,
 };

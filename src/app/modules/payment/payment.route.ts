@@ -45,5 +45,10 @@ router.get(
   // auth(USER_ROLE.sup_admin, USER_ROLE.admin),
   paymentControllers.transactionOverview,
 );
+router.get(
+  '/stats/transactions',
+  // auth(USER_ROLE.sup_admin, USER_ROLE.admin),
+  paymentControllers.getMonthlyPaymentStats,
+);
 
 export const paymentRoutes = router;

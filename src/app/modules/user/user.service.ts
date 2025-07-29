@@ -258,18 +258,17 @@ const insertProviderIntoDb = async (
   }
   const session = await mongoose.startSession();
 
-// proivider data
-const providerData ={
-  name:payload?.name,
-  email:payload?.email,
-  password:payload?.password,
-  address:payload?.address,
-  role:payload?.role,
-  countryCode:payload?.countryCode,
-phoneNumber:payload?.phoneNumber
-}
-
-
+  // proivider data
+  const providerData = {
+    name: payload?.name,
+    email: payload?.email,
+    password: payload?.password,
+    address: payload?.address,
+    role: payload?.role,
+    countryCode: payload?.countryCode,
+    phoneNumber: payload?.phoneNumber,
+    bank: payload?.bank,
+  };
 
   const otp = {
     otp: 123456,
@@ -278,9 +277,12 @@ phoneNumber:payload?.phoneNumber
   };
   try {
     session.startTransaction();
-    const insertUser = await User.create([{ ...providerData, verification: otp }], {
-      session,
-    });
+    const insertUser = await User.create(
+      [{ ...providerData, verification: otp }],
+      {
+        session,
+      },
+    );
     if (!insertUser[0]) {
       throw new AppError(httpStatus.BAD_REQUEST, 'User not created');
     }
@@ -294,24 +296,20 @@ phoneNumber:payload?.phoneNumber
       { session },
     );
 
-const shopData  ={
-  name:payload?.shopName,
-  address:payload?.shopAddress,
-  helpLineNumber:payload?.helpLineNumber,
-  license:payload?.license,
-  images:payload?.image,
-  location:{coordinates:[payload?.location?.lng, payload?.location?.lat]},
-  provider:result[0]?._id,
-  image:payload?.image
+    const shopData = {
+      name: payload?.shopName,
+      address: payload?.shopAddress,
+      helpLineNumber: payload?.helpLineNumber,
+      license: payload?.license,
+      images: payload?.image,
+      location: {
+        coordinates: [payload?.location?.lng, payload?.location?.lat],
+      },
+      provider: result[0]?._id,
+      image: payload?.image,
+    };
 
-}
-
- await Shop.create(
-      [
-        shopData
-      ],
-      { session },
-    );
+    await Shop.create([shopData], { session });
 
     await session.commitTransaction();
     await session.endSession();
@@ -364,7 +362,6 @@ const insertEmployeeIntoDb = async (
     );
     await session.commitTransaction();
     await session.endSession();
-    console.log('==================result', result[0]);
     return result[0];
   } catch (error) {
     await session.abortTransaction();
@@ -384,6 +381,9 @@ const getme = async (id: string) => {
       break;
     case UserRole.employee:
       result = await Employee.findOne({ user }).populate('user');
+      break;
+    case UserRole.super_admin:
+      result = await Admin.findOne({ user }).populate('user');
       break;
     default:
       break;
@@ -418,6 +418,11 @@ const updateProfile = async (
       break;
     case UserRole.provider:
       result = await Provider.findOneAndUpdate({ user: id }, payload, {
+        new: true,
+      });
+      break;
+    case UserRole.super_admin:
+      result = await Admin.findOneAndUpdate({ user: id }, payload, {
         new: true,
       });
       break;
@@ -460,9 +465,13 @@ const updatePhoneNumber = async (id: string, payload: any) => {
   return result;
 };
 const getUserStaticsData = async () => {
-  const totalCustomer = await User.countDocuments({ role: USER_ROLE.customer });
+  const totalCustomer = await User.countDocuments({
+    role: USER_ROLE.customer,
+    isDeleted: false,
+  });
   const totalProviders = await User.countDocuments({
     role: USER_ROLE.provider,
+    isDeleted: false,
   });
 
   return {
@@ -472,6 +481,7 @@ const getUserStaticsData = async () => {
 };
 
 export const getAllUsers = async (query: UserQuery) => {
+  console.log(query);
   const { searchTerm, role, ...otherFilters } = query;
   const { page, limit } = calculatePagination(query);
   const skip = (page - 1) * limit;
@@ -527,6 +537,7 @@ export const getAllUsers = async (query: UserQuery) => {
           role: 1,
           isActive: 1,
           isDeleted: 1,
+
           createdAt: 1,
           fullName: { $arrayElemAt: ['$customerInfo.name', 0] },
           image: { $arrayElemAt: ['$customerInfo.image', 0] },
@@ -567,6 +578,7 @@ export const getAllUsers = async (query: UserQuery) => {
           isActive: 1,
           isDeleted: 1,
           createdAt: 1,
+          bank: { $arrayElemAt: ['$providerInfo.bank', 0] },
           fullName: { $arrayElemAt: ['$providerInfo.name', 0] },
           providerId: 1,
           image: { $arrayElemAt: ['$providerInfo.image', 0] },

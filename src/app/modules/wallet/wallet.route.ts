@@ -1,4 +1,6 @@
 import express from 'express';
+import auth from '../../middleware/auth';
+import { USER_ROLE } from '../user/user.constant';
 import walletController, {
   providerTransactionController,
 } from './wallet.controller';
@@ -6,9 +8,19 @@ import walletController, {
 const router = express.Router();
 export const ProviderTransactionRoutes = express.Router();
 router.get(
+  '/earning-overview',
+  auth(USER_ROLE.sup_admin),
+  walletController.findTotalAdminIncome,
+);
+router.get(
   '/:id',
   // auth(USER_ROLE.sup_admin),
   walletController.findProviderWiseWallet,
+);
+router.get(
+  '/earning-overview',
+  auth(USER_ROLE.sup_admin),
+  walletController.findTotalAdminIncome,
 );
 router.patch(
   '/percentage/:id',

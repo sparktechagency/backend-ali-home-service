@@ -5,6 +5,13 @@ export interface Iname {
   firstName: string;
   lastName: string;
 }
+
+export interface IBank {
+  accountHolderName: string;
+  accountNumber: number;
+  iban: string;
+  bankName: string;
+}
 enum gender {
   Male = 'Male',
   Female = 'Female',
@@ -21,4 +28,5 @@ export interface IServiceProvider {
   gender: gender;
   fcmToken: string;
   isDeleted: boolean;
+  bank: IBank;
 }
