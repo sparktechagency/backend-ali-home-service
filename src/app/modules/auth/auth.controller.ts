@@ -94,6 +94,19 @@ const refreshToken = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
+const verifyPassword = catchAsync(async (req, res) => {
+  const result = await authServices.verifyPassword(
+    req.user.userId,
+    req.body?.password,
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'password verified',
+    data: result,
+  });
+});
 export const authControllers = {
   login,
   changePassword,
@@ -101,4 +114,5 @@ export const authControllers = {
   resetPassword,
   refreshToken,
   adminLogin,
+  verifyPassword,
 };

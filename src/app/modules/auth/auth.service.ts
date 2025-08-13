@@ -295,6 +295,15 @@ const refreshToken = async (token: string) => {
     accessToken,
   };
 };
+
+const verifyPassword = async (userId: string, password: string) => {
+  const user: any = await User.findById(userId).select('+password');
+
+  if (!(await User.isPasswordMatched(password, user.password))) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'password do not match');
+  }
+  return true;
+};
 export const authServices = {
   login,
   changePassword,
@@ -302,4 +311,5 @@ export const authServices = {
   resetPassword,
   refreshToken,
   adminLogin,
+  verifyPassword,
 };

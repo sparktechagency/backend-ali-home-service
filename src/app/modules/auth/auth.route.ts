@@ -6,7 +6,11 @@ import { authControllers } from './auth.controller';
 import { authValidation } from './auth.validation';
 
 const router = Router();
-
+router.post(
+  '/verify-password',
+  auth(USER_ROLE.sup_admin),
+  authControllers.verifyPassword,
+);
 router.post('/login', authControllers.login);
 router.post('/admin/login', authControllers.adminLogin);
 router.post(
@@ -21,4 +25,5 @@ router.patch(
 );
 router.patch('/forgot-password', authControllers.forgotPassword);
 router.patch('/reset-password', authControllers.resetPassword);
+
 export const authRoutes = router;

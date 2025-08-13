@@ -269,6 +269,7 @@ const insertProviderIntoDb = async (
     countryCode: payload?.countryCode,
     phoneNumber: payload?.phoneNumber,
     bank: payload?.bank,
+    needsPasswordChange: true,
   };
 
   const otp = {
