@@ -488,7 +488,6 @@ const getUserStaticsData = async () => {
 };
 
 export const getAllUsers = async (query: UserQuery) => {
-  console.log(query);
   const { searchTerm, role, ...otherFilters } = query;
   const { page, limit } = calculatePagination(query);
   const skip = (page - 1) * limit;
@@ -602,6 +601,39 @@ export const getAllUsers = async (query: UserQuery) => {
         },
       },
     );
+  } else if (role == USER_ROLE.sub_admin) {
+    pipeline.push(
+      {
+        $lookup: {
+          from: 'admins',
+          localField: '_id',
+          foreignField: 'user',
+          as: 'adminInfo',
+        },
+      },
+      {
+        $addFields: {
+          providerId: { $arrayElemAt: ['$adminInfor._id', 0] },
+        },
+      },
+
+      {
+        $project: {
+          _id: 1,
+          email: 1,
+          role: 1,
+          isActive: 1,
+          isDeleted: 1,
+          createdAt: 1,
+          fullName: { $arrayElemAt: ['$adminInfo.fullName', 0] },
+          providerId: 1,
+          image: { $arrayElemAt: ['$providerInfo.image', 0] },
+          // address: { $arrayElemAt: ['$providerInfo.address', 0] },
+          countryCode: 1,
+          phoneNumber: 1,
+        },
+      },
+    );
   } else {
     pipeline.push({
       $project: {
@@ -642,6 +674,73 @@ const updateUser = async (id: string, payload: Partial<TUser>) => {
   const user = await User.findByIdAndUpdate(id, payload, { new: true });
   return user;
 };
+
+const insertSubAdmin = async (payload: any): Promise<any | null> => {
+  // check if same email exists
+  const isExistUser = await User.findOne({ email: payload?.email });
+  if (isExistUser) {
+    throw new AppError(
+      httpStatus.CONFLICT,
+      'User already exists with this email!',
+    );
+  }
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    // Create user (directly verified, no OTP)
+    const insertUser = await User.create([{ ...payload, isVerified: true }], {
+      session,
+    });
+    if (!insertUser[0]) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'User not created');
+    }
+
+    const adminData = {
+      fullName: payload.fullName,
+      image: payload.image,
+      user: insertUser[0]?._id,
+    };
+    const result = await Admin.create([adminData], { session });
+
+    await session.commitTransaction();
+    await session.endSession();
+    return result[0];
+  } catch (error) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new Error(error as any);
+  }
+};
+
+const deleteSubAdmin = async (id: string) => {
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    const result = await User.findByIdAndUpdate(
+      id,
+      { isDeleted: true },
+      { new: true, session },
+    );
+
+    if (result) {
+      await Admin.findOneAndUpdate(
+        { user: id },
+        { isDeleted: true },
+        { new: true, session },
+      );
+    }
+
+    await session.commitTransaction();
+    return result;
+  } catch (error) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw error;
+  }
+};
+
 export const userServices = {
   insertEmployeeIntoDb,
   insertCustomerIntoDb,
@@ -656,4 +755,6 @@ export const userServices = {
   getUserStaticsData,
   getAllUsers,
   updateUser,
+  insertSubAdmin,
+  deleteSubAdmin,
 };

@@ -6,6 +6,7 @@ export const USER_ROLE = {
   employee: 'employee',
   user: 'user',
   customer: 'customer',
+  sub_admin: 'sub_admin',
   all: ['admin', 'vendor', 'user'].join(','),
 };
 export const UserStatus = ['pending', 'active', 'blocked'];

@@ -45,6 +45,29 @@ const insertAdminIntoDb = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+
+const insertSubAdmin = catchAsync(async (req: Request, res: Response) => {
+  console.log(req.body, 'body');
+  // let image;
+  // if (req?.file) {
+  //   image = await uploadToS3(req?.file, 'profile/');
+  // }
+
+  const result = await userServices.insertSubAdmin({
+    ...req.body,
+    role: USER_ROLE.sub_admin,
+    // image,
+    verification: { status: true, expiresAt: new Date(), otp: 123450 }, // dummy verification data
+    isActive: true,
+    isVerified: true,
+  });
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Sub Admin created successfully',
+    data: result,
+  });
+});
 // create customer with google
 const SignupWithGoogleForCustomer = catchAsync(
   async (req: Request, res: Response) => {
@@ -185,11 +208,22 @@ const getUserStaticsData = catchAsync(async (req: Request, res: Response) => {
 });
 const getAllUser = catchAsync(async (req: Request, res: Response) => {
   const result = await userServices.getAllUsers(req.query);
-  console.log(result?.data?.[0]);
+
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: 'All users retrieved successfully',
+    data: result?.data,
+    meta: result?.meta,
+  });
+});
+const deleteSubAdmin = catchAsync(async (req: Request, res: Response) => {
+  const result = await userServices.deleteSubAdmin(req.params.id);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Sub admin deleted successfully',
     data: result?.data,
     meta: result?.meta,
   });
@@ -208,4 +242,6 @@ export const userControllers = {
   updatePhoneNumber,
   getUserStaticsData,
   getAllUser,
+  insertSubAdmin,
+  deleteSubAdmin,
 };

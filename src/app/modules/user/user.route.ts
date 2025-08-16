@@ -73,7 +73,11 @@ router.get(
   ),
   userControllers.getme,
 );
-router.get('/', userControllers.getAllUser);
+router.get(
+  '/',
+  auth(USER_ROLE.sub_admin, USER_ROLE.sup_admin),
+  userControllers.getAllUser,
+);
 router.get(
   '/:id',
   auth(USER_ROLE.vendor, USER_ROLE.admin),
@@ -83,6 +87,11 @@ router.get(
   '/admin/statics',
   auth(USER_ROLE.sup_admin, USER_ROLE.admin),
   userControllers.getUserStaticsData,
+);
+router.post(
+  '/admin/sub_admin',
+  auth(USER_ROLE.sup_admin, USER_ROLE.admin),
+  userControllers.insertSubAdmin,
 );
 
 router.patch(
@@ -98,6 +107,11 @@ router.patch(
   ),
   userControllers.updateProfile,
 );
+router.patch(
+  '/admin/sub_admin/:id',
+  auth(USER_ROLE.sup_admin),
+  userControllers.deleteSubAdmin,
+);
 router.delete(
   '/',
   auth(
@@ -108,4 +122,5 @@ router.delete(
   ),
   userControllers.deleteAccount,
 );
+
 export const userRoutes = router;
