@@ -16,13 +16,23 @@ router.post(
 );
 router.get(
   '/',
-  auth(USER_ROLE.customer, USER_ROLE.provider, USER_ROLE.sup_admin),
+  auth(
+    USER_ROLE.customer,
+    USER_ROLE.provider,
+    USER_ROLE.sup_admin,
+    USER_ROLE.sub_admin,
+  ),
 
   reviewController.getShopwisereview,
 );
 router.get(
   '/:id',
-  auth(USER_ROLE.customer, USER_ROLE.provider, USER_ROLE.sup_admin),
+  auth(
+    USER_ROLE.customer,
+    USER_ROLE.provider,
+    USER_ROLE.sup_admin,
+    USER_ROLE.sub_admin,
+  ),
 
   reviewController.getserviceWiseReview,
 );

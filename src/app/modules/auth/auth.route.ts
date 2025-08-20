@@ -8,7 +8,7 @@ import { authValidation } from './auth.validation';
 const router = Router();
 router.post(
   '/verify-password',
-  auth(USER_ROLE.sup_admin),
+  auth(USER_ROLE.sup_admin, USER_ROLE.sub_admin),
   authControllers.verifyPassword,
 );
 router.post('/login', authControllers.login);
@@ -20,7 +20,12 @@ router.post(
 );
 router.patch(
   '/change-password',
-  auth(USER_ROLE.sup_admin, USER_ROLE.provider, USER_ROLE.customer),
+  auth(
+    USER_ROLE.sup_admin,
+    USER_ROLE.provider,
+    USER_ROLE.customer,
+    USER_ROLE.sub_admin,
+  ),
   authControllers.changePassword,
 );
 router.patch('/forgot-password', authControllers.forgotPassword);

@@ -37,17 +37,17 @@ router.post(
 );
 router.get(
   '/transactions',
-  // auth(USER_ROLE.sup_admin, USER_ROLE.admin),
+  auth(USER_ROLE.sup_admin, USER_ROLE.sub_admin),
   paymentControllers.showTransactions,
 );
 router.get(
   '/transactionsOverview',
-  // auth(USER_ROLE.sup_admin, USER_ROLE.admin),
+  auth(USER_ROLE.sup_admin, USER_ROLE.sub_admin),
   paymentControllers.transactionOverview,
 );
 router.get(
   '/stats/transactions',
-  // auth(USER_ROLE.sup_admin, USER_ROLE.admin),
+  auth(USER_ROLE.sup_admin, USER_ROLE.sub_admin),
   paymentControllers.getMonthlyPaymentStats,
 );
 

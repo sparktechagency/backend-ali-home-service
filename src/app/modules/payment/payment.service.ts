@@ -421,65 +421,52 @@ const completePaymentByHandCash = async (payload: any) => {
 
 const showTransactions = async (query: Record<string, any>) => {
   const { page: pageQuery, limit: limitQuery, date, ...filters } = query;
-  if (date) {
-    const [startDate, endDate] = date.split(',');
-    filters.date = {
-      $gte: startDate,
-      $lte: endDate,
-    };
-  }
+
+  // Parse pagination
   const page = parseInt(pageQuery, 10) || 1;
   const limit = parseInt(limitQuery, 10) || 10;
   const skip = (page - 1) * limit;
 
+  // Build filters for $match
+  const match: any = { ...filters };
+
+  if (date) {
+    const [start, end] = date.split(',');
+
+    const startDt = new Date(start);
+    startDt.setHours(0, 0, 0, 0); // start of day
+
+    const endDt = new Date(end);
+    endDt.setHours(23, 59, 59, 999); // end of day
+
+    match.createdAt = {
+      $gte: startDt,
+      $lte: endDt,
+    };
+  }
+
   const pipeline: any = [
-    {
-      $match: {
-        ...filters,
-      },
-    },
+    { $match: match },
     {
       $lookup: {
         from: 'customers',
         localField: 'customer',
         foreignField: '_id',
         as: 'customerDetails',
-        pipeline: [
-          {
-            $project: {
-              name: 1,
-            },
-          },
-        ],
+        pipeline: [{ $project: { name: 1 } }],
       },
     },
-    {
-      $unwind: {
-        path: '$customerDetails',
-        preserveNullAndEmptyArrays: true,
-      },
-    },
+    { $unwind: { path: '$customerDetails', preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: 'services',
         localField: 'service',
         foreignField: '_id',
         as: 'serviceDetails',
-        pipeline: [
-          {
-            $project: {
-              serviceName: 1,
-            },
-          },
-        ],
+        pipeline: [{ $project: { serviceName: 1 } }],
       },
     },
-    {
-      $unwind: {
-        path: '$serviceDetails',
-        preserveNullAndEmptyArrays: true,
-      },
-    },
+    { $unwind: { path: '$serviceDetails', preserveNullAndEmptyArrays: true } },
     {
       $project: {
         createdAt: 1,
@@ -496,9 +483,13 @@ const showTransactions = async (query: Record<string, any>) => {
     { $limit: limit },
   ];
 
-  const transactions = await Payment.aggregate(pipeline);
-  const total = await Payment.countDocuments(filters);
+  const [transactions, totalAgg] = await Promise.all([
+    Payment.aggregate(pipeline),
+    Payment.aggregate([{ $match: match }, { $count: 'count' }]),
+  ]);
 
+  const total = totalAgg[0]?.count ?? 0;
+  console.log(transactions);
   return {
     data: transactions,
     meta: {

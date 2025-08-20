@@ -46,7 +46,6 @@ const getPaymentsByProvider = catchAsync(
   async (req: Request, res: Response) => {
     const query = { ...req.query };
     query['shop'] = req.user.shop;
-    console.log(query);
     const result = await paymentServices.getPaymentsByProvider(query);
     sendResponse(res, {
       statusCode: httpStatus.OK,

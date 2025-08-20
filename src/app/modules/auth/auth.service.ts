@@ -99,11 +99,11 @@ const login = async (payload: Tlogin) => {
 
 const adminLogin = async (payload: { email: string; password: string }) => {
   const user = await User.isUserExist(payload?.email);
-
+  console.log(user.role);
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, 'User Not Found');
   }
-  if (user.role !== USER_ROLE.sup_admin) {
+  if (user.role !== USER_ROLE.sup_admin && user.role !== USER_ROLE.sub_admin) {
     throw new AppError(httpStatus.FORBIDDEN, 'Access denied: Not an admin');
   }
   if (!user.isActive) {

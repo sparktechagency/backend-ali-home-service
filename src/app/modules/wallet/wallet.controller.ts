@@ -71,11 +71,25 @@ const updateCashTransaction = catchAsync(
     });
   },
 );
+const getWalletDataForprovider = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await walletServices.getWalletDataForprovider(
+      req.user.profileId,
+    );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Transactions data retrieved successfully',
+      data: result,
+    });
+  },
+);
 const walletController = {
   findProviderWiseWallet,
   updateTransaction,
   updateWallet,
   findTotalAdminIncome,
+  getWalletDataForprovider,
   updateCashTransaction,
 };
 

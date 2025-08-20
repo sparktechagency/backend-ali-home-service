@@ -11,12 +11,12 @@ const router = Router();
 
 router.get(
   '/',
-  auth(USER_ROLE.provider, USER_ROLE.sup_admin),
+  auth(USER_ROLE.provider, USER_ROLE.sup_admin, USER_ROLE.sub_admin),
   employeeControllers.GetAllMyEmployees,
 );
 router.get(
   '/:id',
-  auth(USER_ROLE.provider, USER_ROLE.sup_admin),
+  auth(USER_ROLE.provider, USER_ROLE.sup_admin, USER_ROLE.sub_admin),
   employeeControllers.getSingleEmployee,
 );
 router.patch(

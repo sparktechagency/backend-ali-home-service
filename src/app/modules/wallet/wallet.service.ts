@@ -140,12 +140,16 @@ const findTotalAdminIncome = async () => {
   };
 };
 
+const getWalletDataForprovider = async (providerId: string) => {
+  const result = await Wallet.findOne({ provider: providerId });
+};
 export const walletServices = {
   findProviderWiseWallet,
   updateTransaction,
   updateWallet,
   findTotalAdminIncome,
   updateCashTransaction,
+  getWalletDataForprovider,
 };
 
 export const providerTransactionServices = {

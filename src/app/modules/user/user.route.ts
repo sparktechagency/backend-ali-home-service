@@ -70,6 +70,7 @@ router.get(
     USER_ROLE.customer,
     USER_ROLE.provider,
     USER_ROLE.employee,
+    USER_ROLE.sub_admin,
   ),
   userControllers.getme,
 );
@@ -85,7 +86,7 @@ router.get(
 );
 router.get(
   '/admin/statics',
-  auth(USER_ROLE.sup_admin, USER_ROLE.admin),
+  auth(USER_ROLE.sup_admin, USER_ROLE.sub_admin),
   userControllers.getUserStaticsData,
 );
 router.post(
