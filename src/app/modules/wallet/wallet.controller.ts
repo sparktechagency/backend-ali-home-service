@@ -79,7 +79,7 @@ const getWalletDataForprovider = catchAsync(
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: 'Transactions data retrieved successfully',
+      message: 'Wallet data retrieved successfully',
       data: result,
     });
   },

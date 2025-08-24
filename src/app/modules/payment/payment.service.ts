@@ -136,7 +136,7 @@ const confirmPayment = async (query: Record<string, any>) => {
       });
       const totalAmount = Number(PaymentSession?.amount_total) / 100;
       const serviceFee = Number(result[0]?.serviceFee || 0);
-      const netAmount = totalAmount - serviceFee;
+      const netAmount = Math.floor(totalAmount - serviceFee);
 
       let walletData = await Wallet.findOne({
         provider: findProvider?.shop?.provider,
@@ -147,11 +147,18 @@ const confirmPayment = async (query: Record<string, any>) => {
         const adminCommissionToAdd = Math.round(
           (totalAmount * percentage) / 100,
         );
-        walletData.amount += netAmount;
-        walletData.adminComission =
-          Number(walletData.adminComission || 0) + adminCommissionToAdd;
 
-        await walletData.save({ session });
+        await Wallet.findByIdAndUpdate(
+          walletData._id,
+          {
+            $inc: {
+              amount: netAmount,
+              adminComission: adminCommissionToAdd,
+            },
+          },
+          { session },
+        );
+        console.log(netAmount, 'netAmount');
       } else {
         const percentage = findProvider?.shop?.percentage || 30;
         const adminCommissionToAdd = Math.round(
@@ -384,9 +391,7 @@ const completePaymentByHandCash = async (payload: any) => {
       path: 'shop',
       select: '_id',
     });
-    const wallet = await Wallet.findOne({ shop: service?.shop?._id }).session(
-      session,
-    );
+    const wallet = await Wallet.findOne({ shop: service?.shop?._id });
     // Step 3: Extract commission percentage
     const commissionPercentage = wallet?.percentage || 30;
     const baseCashAmount = Number(updateQuote?.fee); // Amount without service fee

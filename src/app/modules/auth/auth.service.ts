@@ -70,6 +70,8 @@ const login = async (payload: Tlogin) => {
   if (!(await User.isPasswordMatched(payload.password, user.password))) {
     throw new AppError(httpStatus.BAD_REQUEST, 'password do not match');
   }
+  if (user?.needsPasswordChange) {
+  }
 
   const jwtPayload = {
     userId: user?._id,
@@ -88,6 +90,16 @@ const login = async (payload: Tlogin) => {
     config.jwt_refresh_secret as string,
     config.jwt_refresh_expires_in as string,
   );
+  if (user?.needsPasswordChange) {
+    return {
+      user: {
+        needPasswordChange: true,
+        role: user.role,
+      },
+      accessToken,
+      refreshToken,
+    };
+  }
   return {
     user,
     accessToken,
@@ -165,6 +177,7 @@ const changePassword = async (id: string, payload: TchangePassword) => {
       $set: {
         password: hashedPassword,
         passwordChangedAt: new Date(),
+        needsPasswordChange: false,
       },
     },
     { new: true },
